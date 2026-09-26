@@ -37,11 +37,11 @@ export default function WelcomeScreen() {
             onClick={() => setLang('ar')}
             className={`flex flex-col items-center gap-1 rounded-3xl p-4 ${lang === 'ar' ? 'bg-sun-100 ring-4 ring-sun-400' : 'bg-grape-50'}`}
           >
-            <ArabicText className="text-5xl font-bold leading-tight text-grape-700">أ ب ت</ArabicText>
+            <ArabicText className="whitespace-nowrap text-4xl font-bold leading-tight text-grape-700">أ ب ت</ArabicText>
             <span className="text-lg font-extrabold">{t('welcome.arabic')}</span>
           </button>
           <button type="button" disabled className="relative flex flex-col items-center gap-1 rounded-3xl bg-gray-100 p-4 opacity-60">
-            <span lang="hi" className="text-5xl font-bold leading-tight">अ आ इ</span>
+            <span lang="hi" className="whitespace-nowrap text-4xl font-bold leading-tight">अ आ इ</span>
             <span className="text-lg font-extrabold">{t('welcome.hindi')}</span>
             <span className="absolute -top-2 end-2 rounded-full bg-coral-400 px-2 text-xs font-extrabold text-white">{t('welcome.comingSoon')}</span>
           </button>

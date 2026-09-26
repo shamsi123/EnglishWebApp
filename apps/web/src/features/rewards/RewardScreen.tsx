@@ -35,7 +35,7 @@ export function RewardScreen({ node, result, onNext, onMap }: Props) {
         {[1, 2, 3].map((n) => (
           <span
             key={n}
-            className={`text-7xl ${n <= result.stars ? 'animate-pop-in drop-shadow-lg' : 'opacity-20 grayscale'}`}
+            className={`text-7xl ${n <= result.stars ? 'animate-pop-in drop-shadow-lg' : 'opacity-30 grayscale'}`}
             style={{ animationDelay: `${n * 0.25}s` }}
           >
             ⭐

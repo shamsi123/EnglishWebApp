@@ -109,7 +109,8 @@ await playLesson(page, {
   },
 });
 
-// 8. Reward
+// 8. Reward (wait for the staggered star animation)
+await page.waitForTimeout(1200);
 await shot('18-reward');
 await page.getByRole('button', { name: /^Next/ }).click();
 
@@ -129,6 +130,7 @@ await page.getByRole('button', { name: /^Next/ }).click();
 await playLesson(page);
 await page.getByRole('button', { name: /^Next/ }).click();
 await playLesson(page);
+await page.waitForTimeout(1500);
 await shot('21-reward-checkpoint-sticker');
 await page.getByRole('button', { name: /Back to map/ }).click();
 await page.getByTestId('journey').waitFor();
@@ -140,7 +142,6 @@ await shot('22-journey-progress');
 await page.clock.install({ time: new Date(Date.now() + 2 * 86_400_000 + 3_600_000) });
 await page.goto(`${BASE}/garden`);
 await page.getByText('Practice Garden').waitFor();
-if (process.env.DEBUG) console.log(JSON.stringify(await page.evaluate(() => ({ now: new Date().toISOString(), items: Object.values(JSON.parse(localStorage.getItem('kidslang')).state.data)[0].items }))));
 await shot('23-practice-garden');
 await page.getByRole('button', { name: /Water my garden/ }).click();
 await page.locator('[data-testid^="option-"]').first().waitFor();
