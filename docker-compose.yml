@@ -1,0 +1,26 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: kidslang
+      POSTGRES_USER: kidslang
+      POSTGRES_PASSWORD: kidslang
+    ports: ["5432:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
+
+  api:
+    build: { context: ., dockerfile: services/api/Dockerfile }
+    environment:
+      Database__Provider: Postgres
+      ConnectionStrings__Postgres: Host=postgres;Database=kidslang;Username=kidslang;Password=kidslang
+      # Local development only — use a secret store for any shared environment.
+      Jwt__SigningKey: compose-dev-signing-key-change-me-0123456789
+    ports: ["8080:8080"]
+    depends_on: [postgres]
+
+  web:
+    build: { context: ., dockerfile: apps/web/Dockerfile }
+    ports: ["3000:80"]
+
+volumes:
+  pgdata:
