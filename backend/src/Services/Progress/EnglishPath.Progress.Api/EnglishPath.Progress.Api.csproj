@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" PrivateAssets="all" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\BuildingBlocks\EnglishPath.BuildingBlocks.Web\EnglishPath.BuildingBlocks.Web.csproj" />
+    <ProjectReference Include="..\EnglishPath.Progress.Infrastructure\EnglishPath.Progress.Infrastructure.csproj" />
+  </ItemGroup>
+</Project>

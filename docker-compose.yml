@@ -1,0 +1,58 @@
+# Local infrastructure (BRD §8.4). Run services with `dotnet run` against it, or
+# `docker compose --profile services up --build` to run everything in containers.
+name: englishpath
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "Dev_Passw0rd!"
+    ports: ["1433:1433"]
+    volumes: [sqldata:/var/opt/mssql]
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -C -Q 'SELECT 1' || exit 1"]
+      interval: 10s
+      retries: 10
+
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    ports: ["5672:5672", "15672:15672"]
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+
+  learning-api:
+    profiles: [services]
+    build: { context: ./backend, args: { SERVICE: Learning } }
+    environment: &service-env
+      ASPNETCORE_ENVIRONMENT: Development
+      RabbitMq__Host: rabbitmq
+      ConnectionStrings__Learning: "Server=sqlserver;Database=EnglishPath_Learning;User Id=sa;Password=Dev_Passw0rd!;TrustServerCertificate=True"
+      ConnectionStrings__Progress: "Server=sqlserver;Database=EnglishPath_Progress;User Id=sa;Password=Dev_Passw0rd!;TrustServerCertificate=True"
+    depends_on: &service-deps
+      sqlserver: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+
+  progress-api:
+    profiles: [services]
+    build: { context: ./backend, args: { SERVICE: Progress } }
+    environment: *service-env
+    depends_on: *service-deps
+
+  gateway:
+    profiles: [services]
+    build: { context: ./backend, args: { SERVICE: Gateway } }
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      Cors__AllowedOrigins__0: "http://localhost:5173"
+    ports: ["5000:8080"]
+    depends_on: [learning-api, progress-api]
+
+volumes:
+  sqldata:

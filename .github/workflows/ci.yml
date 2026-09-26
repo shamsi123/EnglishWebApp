@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  web:
+    name: Web & shared packages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: pnpm test
+      - name: Check initial JS bundle budget (NFR-02, ≤ 200 KB gzipped)
+        run: |
+          size=$(find apps/web/dist/assets -name 'index-*.js' -exec gzip -c {} \; | wc -c)
+          echo "Initial JS: $((size / 1024)) KB gzipped"
+          test "$size" -le 204800
+
+  backend:
+    name: Backend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: backend/global.json
+      - run: dotnet restore EnglishPath.sln
+      - run: dotnet build EnglishPath.sln --no-restore -c Release
+      - run: dotnet test EnglishPath.sln --no-build --configuration Release
+      - name: Check EF models have no pending migrations
+        run: |
+          dotnet tool restore
+          for s in Learning Progress; do
+            dotnet ef migrations has-pending-model-changes \
+              -p src/Services/$s/EnglishPath.$s.Infrastructure -s src/Services/$s/EnglishPath.$s.Api --no-build --configuration Release
+          done

@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\BuildingBlocks\EnglishPath.BuildingBlocks.Application\EnglishPath.BuildingBlocks.Application.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\EnglishPath.Contracts\EnglishPath.Contracts.csproj" />
+    <ProjectReference Include="..\EnglishPath.Progress.Domain\EnglishPath.Progress.Domain.csproj" />
+  </ItemGroup>
+</Project>

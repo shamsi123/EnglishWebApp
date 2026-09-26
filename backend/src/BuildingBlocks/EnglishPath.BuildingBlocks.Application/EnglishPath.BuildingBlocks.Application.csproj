@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <PackageReference Include="FluentValidation" />
+    <PackageReference Include="MediatR" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\EnglishPath.BuildingBlocks.Domain\EnglishPath.BuildingBlocks.Domain.csproj" />
+  </ItemGroup>
+</Project>

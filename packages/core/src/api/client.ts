@@ -1,3 +1,4 @@
+import type { Answer } from "../content/scoring.js";
 import type { CefrLevel, Lesson, Skill } from "../content/schema.js";
 
 /**
@@ -24,19 +25,32 @@ export interface CourseMapDto {
 }
 
 export interface AttemptDto {
-  /** Client-generated id so offline batches can be retried idempotently (NFR-05). */
-  clientAttemptId: string;
-  lessonId: string;
-  lessonVersion: number;
   exerciseId: string;
-  answer: unknown;
+  answer: Answer;
+  /** ISO date-time. Only the first attempt per exercise is scored; mistake-review retries follow. */
   answeredAt: string;
   timeTakenMs: number;
 }
 
-export interface SubmitAttemptsResultDto {
-  accepted: string[];
-  rejected: Array<{ clientAttemptId: string; reason: string }>;
+export interface CompleteLessonRequest {
+  /** Client-generated UUID so offline syncs can be retried idempotently (NFR-05). */
+  completionId: string;
+  lessonVersion: number;
+  /** Learner's local calendar day, YYYY-MM-DD (drives daily goals and streaks). */
+  learnerLocalDay: string;
+  attempts: AttemptDto[];
+}
+
+export interface CompletionResultDto {
+  completionId: string;
+  correctFirstTry: number;
+  totalExercises: number;
+}
+
+export interface DueCardDto {
+  vocabularyId: string;
+  dueAt: string;
+  repetitions: number;
 }
 
 export interface DashboardDto {
@@ -92,12 +106,27 @@ export class ApiClient {
     return this.request("GET", `/learning/lessons/${encodeURIComponent(lessonId)}`);
   }
 
-  submitAttempts(attempts: AttemptDto[]): Promise<SubmitAttemptsResultDto> {
-    return this.request("POST", "/learning/attempts", { attempts });
+  /** Server re-grades the attempts and awards XP asynchronously (BRD §8.3 decisions 3–4). */
+  completeLesson(lessonId: string, body: CompleteLessonRequest): Promise<CompletionResultDto> {
+    return this.request("POST", `/learning/lessons/${encodeURIComponent(lessonId)}/completions`, body);
   }
 
-  getDashboard(): Promise<DashboardDto> {
-    return this.request("GET", "/progress/dashboard");
+  /** @param today learner's local day, YYYY-MM-DD */
+  getDashboard(today: string): Promise<DashboardDto> {
+    return this.request("GET", `/progress/dashboard?today=${encodeURIComponent(today)}`);
+  }
+
+  setDailyGoal(minutes: 5 | 10 | 15 | 20): Promise<void> {
+    return this.request("PUT", "/progress/daily-goal", { minutes });
+  }
+
+  getDueReviews(limit = 20): Promise<DueCardDto[]> {
+    return this.request("GET", `/progress/reviews/due?limit=${limit}`);
+  }
+
+  /** @param grade SM-2 self-grade 0–5 */
+  reviewWord(vocabularyId: string, grade: number): Promise<DueCardDto> {
+    return this.request("POST", `/progress/reviews/${encodeURIComponent(vocabularyId)}`, { grade });
   }
 
   async request<T>(method: string, path: string, body?: unknown): Promise<T> {
