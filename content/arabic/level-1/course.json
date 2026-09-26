@@ -1,0 +1,534 @@
+{
+  "id": "ar",
+  "languageCode": "ar",
+  "direction": "rtl",
+  "mascot": {
+    "emoji": "🐪",
+    "name": "Jamal"
+  },
+  "title": {
+    "en": "Arabic",
+    "ar": "العربية"
+  },
+  "defaultMastery": {
+    "minScore": 0.8,
+    "requireEachNewItem": true,
+    "minTraceAccuracy": 0.7
+  },
+  "levels": [
+    {
+      "id": "ar-l1",
+      "title": {
+        "en": "Letters & Sounds",
+        "ar": "الحروف والأصوات"
+      },
+      "trophy": "🏆",
+      "units": [
+        {
+          "id": "ar-l1-u1",
+          "title": {
+            "en": "Alif & the Ba family",
+            "ar": "الألف وعائلة الباء"
+          },
+          "sticker": "🐪",
+          "lessons": [
+            {
+              "id": "ar-l1-u1-l1",
+              "title": {
+                "en": "Letter Alif",
+                "ar": "حرف أَلِف"
+              },
+              "newItems": [
+                "ar-letter-alif"
+              ],
+              "reviewItems": []
+            },
+            {
+              "id": "ar-l1-u1-l2",
+              "title": {
+                "en": "Letter Ba",
+                "ar": "حرف بَاء"
+              },
+              "newItems": [
+                "ar-letter-ba"
+              ],
+              "reviewItems": [
+                "ar-letter-alif"
+              ]
+            },
+            {
+              "id": "ar-l1-u1-l3",
+              "title": {
+                "en": "Letter Ta",
+                "ar": "حرف تَاء"
+              },
+              "newItems": [
+                "ar-letter-ta"
+              ],
+              "reviewItems": [
+                "ar-letter-alif",
+                "ar-letter-ba"
+              ]
+            },
+            {
+              "id": "ar-l1-u1-l4",
+              "title": {
+                "en": "Letter Tha",
+                "ar": "حرف ثَاء"
+              },
+              "newItems": [
+                "ar-letter-tha"
+              ],
+              "reviewItems": [
+                "ar-letter-ba",
+                "ar-letter-ta"
+              ]
+            }
+          ],
+          "checkpoint": {
+            "id": "ar-l1-u1-cp",
+            "size": 6
+          }
+        },
+        {
+          "id": "ar-l1-u2",
+          "title": {
+            "en": "The Jim family",
+            "ar": "عائلة الجيم"
+          },
+          "sticker": "🌵",
+          "lessons": [
+            {
+              "id": "ar-l1-u2-l1",
+              "title": {
+                "en": "Letter Jim",
+                "ar": "حرف جِيم"
+              },
+              "newItems": [
+                "ar-letter-jim"
+              ],
+              "reviewItems": [
+                "ar-letter-ta",
+                "ar-letter-tha"
+              ]
+            },
+            {
+              "id": "ar-l1-u2-l2",
+              "title": {
+                "en": "Letter Ḥa",
+                "ar": "حرف حَاء"
+              },
+              "newItems": [
+                "ar-letter-hha"
+              ],
+              "reviewItems": [
+                "ar-letter-tha",
+                "ar-letter-jim"
+              ]
+            },
+            {
+              "id": "ar-l1-u2-l3",
+              "title": {
+                "en": "Letter Kha",
+                "ar": "حرف خَاء"
+              },
+              "newItems": [
+                "ar-letter-kha"
+              ],
+              "reviewItems": [
+                "ar-letter-jim",
+                "ar-letter-hha"
+              ]
+            }
+          ],
+          "checkpoint": {
+            "id": "ar-l1-u2-cp",
+            "size": 6
+          }
+        },
+        {
+          "id": "ar-l1-u3",
+          "title": {
+            "en": "Dal, Dhal, Ra, Zay",
+            "ar": "دال وذال وراء وزاي"
+          },
+          "sticker": "🌴",
+          "lessons": [
+            {
+              "id": "ar-l1-u3-l1",
+              "title": {
+                "en": "Letter Dal",
+                "ar": "حرف دَال"
+              },
+              "newItems": [
+                "ar-letter-dal"
+              ],
+              "reviewItems": [
+                "ar-letter-hha",
+                "ar-letter-kha"
+              ]
+            },
+            {
+              "id": "ar-l1-u3-l2",
+              "title": {
+                "en": "Letter Dhal",
+                "ar": "حرف ذَال"
+              },
+              "newItems": [
+                "ar-letter-dhal"
+              ],
+              "reviewItems": [
+                "ar-letter-kha",
+                "ar-letter-dal"
+              ]
+            },
+            {
+              "id": "ar-l1-u3-l3",
+              "title": {
+                "en": "Letter Ra",
+                "ar": "حرف رَاء"
+              },
+              "newItems": [
+                "ar-letter-ra"
+              ],
+              "reviewItems": [
+                "ar-letter-dal",
+                "ar-letter-dhal"
+              ]
+            },
+            {
+              "id": "ar-l1-u3-l4",
+              "title": {
+                "en": "Letter Zay",
+                "ar": "حرف زَاي"
+              },
+              "newItems": [
+                "ar-letter-zay"
+              ],
+              "reviewItems": [
+                "ar-letter-dhal",
+                "ar-letter-ra"
+              ]
+            }
+          ],
+          "checkpoint": {
+            "id": "ar-l1-u3-cp",
+            "size": 6
+          }
+        },
+        {
+          "id": "ar-l1-u4",
+          "title": {
+            "en": "The Sin & Sad families",
+            "ar": "عائلة السين والصاد"
+          },
+          "sticker": "🐚",
+          "lessons": [
+            {
+              "id": "ar-l1-u4-l1",
+              "title": {
+                "en": "Letter Sin",
+                "ar": "حرف سِين"
+              },
+              "newItems": [
+                "ar-letter-sin"
+              ],
+              "reviewItems": [
+                "ar-letter-ra",
+                "ar-letter-zay"
+              ]
+            },
+            {
+              "id": "ar-l1-u4-l2",
+              "title": {
+                "en": "Letter Shin",
+                "ar": "حرف شِين"
+              },
+              "newItems": [
+                "ar-letter-shin"
+              ],
+              "reviewItems": [
+                "ar-letter-zay",
+                "ar-letter-sin"
+              ]
+            },
+            {
+              "id": "ar-l1-u4-l3",
+              "title": {
+                "en": "Letter Ṣad",
+                "ar": "حرف صَاد"
+              },
+              "newItems": [
+                "ar-letter-sad"
+              ],
+              "reviewItems": [
+                "ar-letter-sin",
+                "ar-letter-shin"
+              ]
+            },
+            {
+              "id": "ar-l1-u4-l4",
+              "title": {
+                "en": "Letter Ḍad",
+                "ar": "حرف ضَاد"
+              },
+              "newItems": [
+                "ar-letter-dad"
+              ],
+              "reviewItems": [
+                "ar-letter-shin",
+                "ar-letter-sad"
+              ]
+            }
+          ],
+          "checkpoint": {
+            "id": "ar-l1-u4-cp",
+            "size": 6
+          }
+        },
+        {
+          "id": "ar-l1-u5",
+          "title": {
+            "en": "Ṭa, Ẓa, ʿAyn, Ghayn",
+            "ar": "طاء وظاء وعين وغين"
+          },
+          "sticker": "🌙",
+          "lessons": [
+            {
+              "id": "ar-l1-u5-l1",
+              "title": {
+                "en": "Letter Ṭa",
+                "ar": "حرف طَاء"
+              },
+              "newItems": [
+                "ar-letter-tta"
+              ],
+              "reviewItems": [
+                "ar-letter-sad",
+                "ar-letter-dad"
+              ]
+            },
+            {
+              "id": "ar-l1-u5-l2",
+              "title": {
+                "en": "Letter Ẓa",
+                "ar": "حرف ظَاء"
+              },
+              "newItems": [
+                "ar-letter-zza"
+              ],
+              "reviewItems": [
+                "ar-letter-dad",
+                "ar-letter-tta"
+              ]
+            },
+            {
+              "id": "ar-l1-u5-l3",
+              "title": {
+                "en": "Letter ʿAyn",
+                "ar": "حرف عَيْن"
+              },
+              "newItems": [
+                "ar-letter-ain"
+              ],
+              "reviewItems": [
+                "ar-letter-tta",
+                "ar-letter-zza"
+              ]
+            },
+            {
+              "id": "ar-l1-u5-l4",
+              "title": {
+                "en": "Letter Ghayn",
+                "ar": "حرف غَيْن"
+              },
+              "newItems": [
+                "ar-letter-ghain"
+              ],
+              "reviewItems": [
+                "ar-letter-zza",
+                "ar-letter-ain"
+              ]
+            }
+          ],
+          "checkpoint": {
+            "id": "ar-l1-u5-cp",
+            "size": 6
+          }
+        },
+        {
+          "id": "ar-l1-u6",
+          "title": {
+            "en": "Fa & Qaf",
+            "ar": "فاء وقاف"
+          },
+          "sticker": "🏺",
+          "lessons": [
+            {
+              "id": "ar-l1-u6-l1",
+              "title": {
+                "en": "Letter Fa",
+                "ar": "حرف فَاء"
+              },
+              "newItems": [
+                "ar-letter-fa"
+              ],
+              "reviewItems": [
+                "ar-letter-ain",
+                "ar-letter-ghain"
+              ]
+            },
+            {
+              "id": "ar-l1-u6-l2",
+              "title": {
+                "en": "Letter Qaf",
+                "ar": "حرف قَاف"
+              },
+              "newItems": [
+                "ar-letter-qaf"
+              ],
+              "reviewItems": [
+                "ar-letter-ghain",
+                "ar-letter-fa"
+              ]
+            }
+          ],
+          "checkpoint": {
+            "id": "ar-l1-u6-cp",
+            "size": 6
+          }
+        },
+        {
+          "id": "ar-l1-u7",
+          "title": {
+            "en": "Kaf, Lam, Mim, Nun",
+            "ar": "كاف ولام وميم ونون"
+          },
+          "sticker": "⭐",
+          "lessons": [
+            {
+              "id": "ar-l1-u7-l1",
+              "title": {
+                "en": "Letter Kaf",
+                "ar": "حرف كَاف"
+              },
+              "newItems": [
+                "ar-letter-kaf"
+              ],
+              "reviewItems": [
+                "ar-letter-fa",
+                "ar-letter-qaf"
+              ]
+            },
+            {
+              "id": "ar-l1-u7-l2",
+              "title": {
+                "en": "Letter Lam",
+                "ar": "حرف لَام"
+              },
+              "newItems": [
+                "ar-letter-lam"
+              ],
+              "reviewItems": [
+                "ar-letter-qaf",
+                "ar-letter-kaf"
+              ]
+            },
+            {
+              "id": "ar-l1-u7-l3",
+              "title": {
+                "en": "Letter Mim",
+                "ar": "حرف مِيم"
+              },
+              "newItems": [
+                "ar-letter-mim"
+              ],
+              "reviewItems": [
+                "ar-letter-kaf",
+                "ar-letter-lam"
+              ]
+            },
+            {
+              "id": "ar-l1-u7-l4",
+              "title": {
+                "en": "Letter Nun",
+                "ar": "حرف نُون"
+              },
+              "newItems": [
+                "ar-letter-nun"
+              ],
+              "reviewItems": [
+                "ar-letter-lam",
+                "ar-letter-mim"
+              ]
+            }
+          ],
+          "checkpoint": {
+            "id": "ar-l1-u7-cp",
+            "size": 6
+          }
+        },
+        {
+          "id": "ar-l1-u8",
+          "title": {
+            "en": "Ha, Waw, Ya",
+            "ar": "هاء وواو وياء"
+          },
+          "sticker": "🏆",
+          "lessons": [
+            {
+              "id": "ar-l1-u8-l1",
+              "title": {
+                "en": "Letter Ha",
+                "ar": "حرف هَاء"
+              },
+              "newItems": [
+                "ar-letter-ha"
+              ],
+              "reviewItems": [
+                "ar-letter-mim",
+                "ar-letter-nun"
+              ]
+            },
+            {
+              "id": "ar-l1-u8-l2",
+              "title": {
+                "en": "Letter Waw",
+                "ar": "حرف وَاو"
+              },
+              "newItems": [
+                "ar-letter-waw"
+              ],
+              "reviewItems": [
+                "ar-letter-nun",
+                "ar-letter-ha"
+              ]
+            },
+            {
+              "id": "ar-l1-u8-l3",
+              "title": {
+                "en": "Letter Ya",
+                "ar": "حرف يَاء"
+              },
+              "newItems": [
+                "ar-letter-ya"
+              ],
+              "reviewItems": [
+                "ar-letter-ha",
+                "ar-letter-waw"
+              ]
+            }
+          ],
+          "checkpoint": {
+            "id": "ar-l1-u8-cp",
+            "size": 6
+          }
+        }
+      ],
+      "levelTest": {
+        "id": "ar-l1-test",
+        "size": 10
+      }
+    }
+  ]
+}

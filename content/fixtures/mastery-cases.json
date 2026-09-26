@@ -1,0 +1,30 @@
+{
+  "cases": [
+    { "name": "perfect score gives 3 stars", "newItems": ["a"], "config": { "minScore": 0.8, "requireEachNewItem": true, "minTraceAccuracy": 0.7 },
+      "results": [{"itemId":"a","correct":true},{"itemId":"b","correct":true},{"itemId":"a","correct":true},{"itemId":"b","correct":true},{"itemId":"a","correct":true}],
+      "traceAccuracy": 0.9, "expected": { "mastered": true, "score": 1.0, "stars": 3, "missedItems": [] } },
+    { "name": "90 percent gives 2 stars", "newItems": ["a"], "config": { "minScore": 0.8, "requireEachNewItem": true, "minTraceAccuracy": 0.7 },
+      "results": [{"itemId":"a","correct":true},{"itemId":"b","correct":true},{"itemId":"a","correct":true},{"itemId":"b","correct":true},{"itemId":"a","correct":true},{"itemId":"b","correct":true},{"itemId":"a","correct":true},{"itemId":"b","correct":true},{"itemId":"a","correct":true},{"itemId":"b","correct":false}],
+      "traceAccuracy": null, "expected": { "mastered": true, "score": 0.9, "stars": 2, "missedItems": ["b"] } },
+    { "name": "80 percent gives 1 star", "newItems": ["a"], "config": { "minScore": 0.8, "requireEachNewItem": true, "minTraceAccuracy": 0.7 },
+      "results": [{"itemId":"a","correct":true},{"itemId":"b","correct":false},{"itemId":"a","correct":true},{"itemId":"b","correct":true},{"itemId":"a","correct":true}],
+      "traceAccuracy": 0.75, "expected": { "mastered": true, "score": 0.8, "stars": 1, "missedItems": ["b"] } },
+    { "name": "below min score is not mastered", "newItems": ["a"], "config": { "minScore": 0.8, "requireEachNewItem": true, "minTraceAccuracy": 0.7 },
+      "results": [{"itemId":"a","correct":true},{"itemId":"b","correct":false},{"itemId":"a","correct":false},{"itemId":"b","correct":true},{"itemId":"a","correct":true}],
+      "traceAccuracy": 0.9, "expected": { "mastered": false, "score": 0.6, "stars": 0, "missedItems": ["a", "b"] } },
+    { "name": "new item never answered correctly blocks mastery", "newItems": ["a", "c"], "config": { "minScore": 0.8, "requireEachNewItem": true, "minTraceAccuracy": 0.7 },
+      "results": [{"itemId":"a","correct":true},{"itemId":"a","correct":true},{"itemId":"a","correct":true},{"itemId":"a","correct":true},{"itemId":"c","correct":false}],
+      "traceAccuracy": null, "expected": { "mastered": false, "score": 0.8, "stars": 0, "missedItems": ["c"] } },
+    { "name": "new item missing from quiz blocks mastery", "newItems": ["a", "c"], "config": { "minScore": 0.8, "requireEachNewItem": true, "minTraceAccuracy": 0.7 },
+      "results": [{"itemId":"a","correct":true},{"itemId":"a","correct":true}],
+      "traceAccuracy": null, "expected": { "mastered": false, "score": 1.0, "stars": 0, "missedItems": ["c"] } },
+    { "name": "requireEachNewItem off ignores unseen items", "newItems": ["a", "c"], "config": { "minScore": 0.8, "requireEachNewItem": false, "minTraceAccuracy": 0.7 },
+      "results": [{"itemId":"a","correct":true},{"itemId":"a","correct":true}],
+      "traceAccuracy": null, "expected": { "mastered": true, "score": 1.0, "stars": 3, "missedItems": [] } },
+    { "name": "low tracing accuracy blocks mastery", "newItems": ["a"], "config": { "minScore": 0.8, "requireEachNewItem": true, "minTraceAccuracy": 0.7 },
+      "results": [{"itemId":"a","correct":true},{"itemId":"a","correct":true}],
+      "traceAccuracy": 0.5, "expected": { "mastered": false, "score": 1.0, "stars": 0, "missedItems": ["a"] } },
+    { "name": "empty quiz is not mastered", "newItems": ["a"], "config": { "minScore": 0.8, "requireEachNewItem": true, "minTraceAccuracy": 0.7 },
+      "results": [], "traceAccuracy": null, "expected": { "mastered": false, "score": 0.0, "stars": 0, "missedItems": ["a"] } }
+  ]
+}
