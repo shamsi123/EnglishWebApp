@@ -13,4 +13,5 @@ export const renderers: Registry = {
   drag_drop: lazy(() => import('./drag_drop/DragDrop')),
   pop_balloon: lazy(() => import('./pop_balloon/PopBalloon')),
   find_letter: lazy(() => import('./find_letter/FindLetter')),
+  story_card: lazy(() => import('./story_card/StoryCard')),
 };

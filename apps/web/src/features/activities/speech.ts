@@ -24,6 +24,8 @@ export function activitySpeech(activity: Activity, t: TFunction, lang: UiLang): 
       return [say('act.pop.prompt'), name];
     case 'find_letter':
       return [say('act.find.prompt', { name: item.name.en }), name];
+    case 'story_card':
+      return [say('act.story.prompt'), ...activity.items.map((id) => ({ text: getItem(id).example.word, lang: 'ar' as const }))];
   }
 }
 
@@ -45,5 +47,7 @@ export function activityCaption(activity: Activity, t: TFunction): string {
       return `${t('act.pop.prompt')} “${item.name.en}”`;
     case 'find_letter':
       return t('act.find.prompt', { name: item.name.en });
+    case 'story_card':
+      return t('act.story.prompt');
   }
 }

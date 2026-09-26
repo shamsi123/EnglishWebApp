@@ -65,7 +65,7 @@ BRD §14 #5 · FR-10, FR-12, FR-14
 
 | Fresh start | After Unit 1 |
 |---|---|
-| <img src="screens/09-journey-start.png" width="280"> | <img src="screens/22-journey-progress.png" width="280"> |
+| <img src="screens/09-journey-start.png" width="280"> | <img src="screens/23-journey-progress.png" width="280"> |
 
 - A winding path of **28 letter lessons in 8 units**. Each unit ends in a **Unit checkpoint** 🏁, and the level ends
   with a **Level test** 🏆.
@@ -94,21 +94,29 @@ The runner's chrome, seen at the top of every activity screen below:
 ## 7. Activity screens
 BRD §14 #7 · §6 activity types (data-driven, one renderer per type, validated with Zod)
 
-| Learn card | A2 Trace the Letter | A1 Listen & Tap |
+| A8 Story Card | Learn card | A2 Trace the Letter |
 |---|---|---|
-| <img src="screens/10-learn-card.png" width="240"> | <img src="screens/11-trace-letter.png" width="240"> | <img src="screens/12-listen-tap.png" width="240"> |
+| <img src="screens/10-story-card.png" width="240"> | <img src="screens/11-learn-card.png" width="240"> | <img src="screens/12-trace-letter.png" width="240"> |
 
+- **Story Card:** opens the first lesson of each unit with a scene of every letter that unit will teach (2–4
+  items — every unit has that many lessons). Tapping a picture speaks its word; **Continue** moves into the
+  first letter's Learn card. Doesn't affect mastery — it's a preview, not a quiz.
 - **Learn card:**
   - Shows the letter, its Arabic name and its sound (`/a/`).
   - Gives an example word with a picture (أَسَد = lion 🦁).
   - Shows the letter's **4 position forms** (alone / start / middle / end), rendered as real joined shapes.
 - **Trace the Letter:** the child follows the dotted guide with a finger. Scoring measures how much of the letter was
   covered and how much ink stayed on it. The Check needs ≥ 70% accuracy.
+
+| A1 Listen & Tap |
+|---|
+| <img src="screens/13-listen-tap.png" width="240"> |
+
 - **Listen & Tap:** hear the letter, tap the match. In Play, the answer is highlighted as a hint after two misses.
 
 | A3 Match Pairs | A4 Drag & Drop | A5 Pop the Balloon |
 |---|---|---|
-| <img src="screens/13-match-pairs.png" width="240"> | <img src="screens/14-drag-drop.png" width="240"> | <img src="screens/15-pop-balloon.png" width="240"> |
+| <img src="screens/14-match-pairs.png" width="240"> | <img src="screens/15-drag-drop.png" width="240"> | <img src="screens/16-pop-balloon.png" width="240"> |
 
 - **Match Pairs:** tap a letter, then the picture whose word starts with it.
 - **Drag & Drop:** drag the letter that starts the pictured word into the basket (touch drag via dnd-kit).
@@ -117,7 +125,7 @@ BRD §14 #7 · §6 activity types (data-driven, one renderer per type, validated
 
 | A6 Find the Letter | Check (mastery quiz) |
 |---|---|
-| <img src="screens/16-find-letter.png" width="240"> | <img src="screens/17-check-quiz.png" width="240"> |
+| <img src="screens/17-find-letter.png" width="240"> | <img src="screens/18-check-quiz.png" width="240"> |
 
 - **Find the Letter:** spot the letter inside a real word. The word stays **properly joined** even though every letter is
   its own tap target (zero-width joiners keep the connected forms).
@@ -130,7 +138,7 @@ BRD §14 #8 · FR-20
 
 | Lesson mastered | Unit checkpoint passed |
 |---|---|
-| <img src="screens/18-reward.png" width="260"> | <img src="screens/21-reward-checkpoint-sticker.png" width="260"> |
+| <img src="screens/19-reward.png" width="260"> | <img src="screens/22-reward-checkpoint-sticker.png" width="260"> |
 
 - Stars are awarded as 80–89% → 1★, 90–99% → 2★, 100% → 3★, with confetti, a celebrating mascot and a chime.
 - Passing a **unit checkpoint** reveals that unit's **sticker**. Passing the level test awards a **trophy**.
@@ -141,7 +149,7 @@ BRD §14 #9 · FR-13
 
 | Help Loop intro | Re-teaching |
 |---|---|
-| <img src="screens/19-help-loop.png" width="260"> | <img src="screens/20-help-loop-practice.png" width="260"> |
+| <img src="screens/20-help-loop.png" width="260"> | <img src="screens/21-help-loop-practice.png" width="260"> |
 
 If the Check isn't passed, the child is never told they failed. Jamal says **"Let's practice together!"** and shows the
 letters that need work. The loop then runs:
@@ -156,7 +164,7 @@ BRD §14 #10 · FR-17
 
 | Garden with letters due | Quick review | Garden watered |
 |---|---|---|
-| <img src="screens/23-practice-garden.png" width="240"> | <img src="screens/24-garden-review.png" width="240"> | <img src="screens/25-garden-watered.png" width="240"> |
+| <img src="screens/24-practice-garden.png" width="240"> | <img src="screens/25-garden-review.png" width="240"> | <img src="screens/26-garden-watered.png" width="240"> |
 
 - Every learned letter sits in a **Leitner box (1–5)**, reviewed after 1, 2, 4, 7 or 14 days. A correct review moves the
   letter up one box (at most once per day). A miss sends it back to box 1.
@@ -169,7 +177,7 @@ BRD §14 #11 · FR-20, FR-22
 
 | Sticker book | My look (avatar) |
 |---|---|
-| <img src="screens/26-sticker-book.png" width="260"> | <img src="screens/27-avatar.png" width="260"> |
+| <img src="screens/27-sticker-book.png" width="260"> | <img src="screens/28-avatar.png" width="260"> |
 
 - Eight unit stickers (earned: 🐪 Unit 1) and the level trophy.
 - **Avatar items unlock with stars:**
@@ -182,7 +190,7 @@ BRD §14 #12 · FR-30 – FR-35, FR-05
 
 | Progress, time, weak letters | Settings |
 |---|---|
-| <img src="screens/28-parent-dashboard.png" width="260"> | <img src="screens/29-parent-settings.png" width="260"> |
+| <img src="screens/29-parent-dashboard.png" width="260"> | <img src="screens/30-parent-settings.png" width="260"> |
 
 - Per child:
   - Lessons mastered, stars, day streak and current lesson.
@@ -203,7 +211,7 @@ BRD §14 #12 · FR-30 – FR-35, FR-05
 
 | Arabic UI (right-to-left) | Screen-time limit reached | Desktop: centred phone frame |
 |---|---|---|
-| <img src="screens/30-journey-arabic-ui.png" width="220"> | <img src="screens/31-break-time.png" width="220"> | <img src="screens/32-desktop-phone-frame.png" width="360"> |
+| <img src="screens/31-journey-arabic-ui.png" width="220"> | <img src="screens/32-break-time.png" width="220"> | <img src="screens/33-desktop-phone-frame.png" width="360"> |
 
 - With the instruction language set to Arabic, **the whole interface mirrors** right-to-left: header, path, bottom nav and
   unit banners. Arabic lesson content is always RTL, whatever the UI language.
@@ -218,7 +226,7 @@ BRD §14 #12 · FR-30 – FR-35, FR-05
 |---|---|
 | Arabic Level 1 content: 28 letters, 8 units, 8 checkpoints, level test | ✅ Complete (Modern Standard Arabic) |
 | Learn → Play → Check, mastery gate, stars, Help Loop, Leitner review | ✅ Implemented, with unit and E2E tests |
-| Activities A1–A6 + learn card | ✅ Implemented. A7 Build the Word and A8 Story Card are not yet built |
+| Activities A1–A6 + learn card + A8 Story Card | ✅ Implemented. A7 Build the Word needs multi-letter words, which start at Level 3 — not applicable to the Level 1 letters MVP |
 | Audio | ⚠️ Uses the device's text-to-speech voice. **Native-speaker recordings are still needed** (paths are in `items.json`) |
 | Pictures & mascots | ⚠️ Emoji placeholders until illustration/animation assets exist |
 | Tracing | ⚠️ Scores coverage + accuracy. Stroke **order and direction** scoring (FR-16) still needs per-letter stroke data |

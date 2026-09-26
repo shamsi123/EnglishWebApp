@@ -84,6 +84,10 @@ export const popBalloonSchema = z.object({
   goal: z.number().int().min(1).max(6),
 });
 export const findLetterSchema = z.object({ ...base, type: z.literal('find_letter'), word: z.string().min(1) });
+// A8 Story Card (Learn phase): a short scene of the unit's items so far, each tappable to hear its word.
+// `itemId` is the first featured item, so the shared speech/caption helpers still have a single item to
+// describe; `items` carries the full scene (2-4 items, itemId included).
+export const storyCardSchema = z.object({ ...base, type: z.literal('story_card'), items: z.array(itemId).min(2).max(4) });
 
 export const activitySchema = z.discriminatedUnion('type', [
   learnCardSchema,
@@ -93,6 +97,7 @@ export const activitySchema = z.discriminatedUnion('type', [
   dragDropSchema,
   popBalloonSchema,
   findLetterSchema,
+  storyCardSchema,
 ]);
 export type Activity = z.infer<typeof activitySchema>;
 export type ActivityType = Activity['type'];

@@ -8,6 +8,7 @@ import MatchPairs from './match_pairs/MatchPairs';
 import PopBalloon from './pop_balloon/PopBalloon';
 import DragDrop from './drag_drop/DragDrop';
 import TraceLetter from './trace/TraceLetter';
+import StoryCard from './story_card/StoryCard';
 
 vi.mock('@/engine/audio', () => ({ sfx: vi.fn(), speak: vi.fn(), speakAll: vi.fn() }));
 
@@ -26,6 +27,18 @@ describe('LearnCard', () => {
     expect(screen.getByText('بَطَّة')).toBeInTheDocument();
     expect(screen.getByText('start')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /Next/ }));
+    expect(onDone).toHaveBeenCalledWith({ correct: true });
+  });
+});
+
+describe('StoryCard', () => {
+  it('speaks each tapped item and continues on tap', () => {
+    const onDone = vi.fn();
+    render(<StoryCard activity={{ id: 'x', type: 'story_card', phase: 'learn', itemId: BA, items: [BA, TA, ALIF] }} onDone={onDone} />);
+    expect(screen.getAllByRole('button')).toHaveLength(4); // 3 items + Continue
+    fireEvent.click(screen.getByTestId(`story-item-${BA}`));
+    expect(screen.getByTestId(`story-item-${BA}`).className).toContain('ring-sky2-400');
+    fireEvent.click(screen.getByRole('button', { name: /Continue/ }));
     expect(onDone).toHaveBeenCalledWith({ correct: true });
   });
 });

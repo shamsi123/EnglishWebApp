@@ -118,7 +118,10 @@
     },
     "tryAgain": "Try again!",
     "great": "Great job!",
-    "hint": "Here's a clue!"
+    "hint": "Here's a clue!",
+    "story": {
+      "prompt": "Tap each picture to hear its word."
+    }
   },
   "reward": {
     "title": "Hooray!",

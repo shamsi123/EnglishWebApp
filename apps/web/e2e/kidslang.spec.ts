@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { passGate, playLesson } from '../scripts/kidslang-driver.mjs';
+import { passGate, playLesson, solveCurrent } from '../scripts/kidslang-driver.mjs';
 
 async function onboard(page: Page) {
   await page.goto('/');
@@ -20,7 +20,10 @@ test('parent signs up, child completes an RTL Arabic lesson and unlocks the next
   await expect(page.getByTestId('node-ar-l1-u1-l2')).toHaveAttribute('data-status', 'locked');
   await page.getByTestId('node-ar-l1-u1-l1').click();
 
-  // Arabic content is right-to-left and uses the joined-form-safe renderer
+  // Arabic content is right-to-left and uses the joined-form-safe renderer.
+  // Unit 1's first lesson opens with a Story Card (A8) before the Learn card.
+  await expect(page.getByTestId('story-card').locator('[dir="rtl"]').first()).toBeVisible();
+  await solveCurrent(page);
   await expect(page.getByTestId('learn-card').locator('[dir="rtl"]').first()).toBeVisible();
   expect(await playLesson(page)).toBe('reward');
   await expect(page.getByText('Hooray!')).toBeVisible();

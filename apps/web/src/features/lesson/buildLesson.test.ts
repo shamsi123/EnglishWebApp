@@ -17,6 +17,25 @@ describe('lesson builder', () => {
       expect(() => generateQuiz(node, 3)).not.toThrow();
     }
   });
+
+  it('opens the first lesson of a unit with a story card of that unit\'s letters', () => {
+    const first = findNode('ar-l1-u1-l1')!;
+    const built = buildLesson(first);
+    expect(built.learn.map((a) => a.type)).toEqual(['story_card', 'learn_card', 'trace']);
+    const story = built.learn[0]!;
+    expect(story.type === 'story_card' && story.items).toEqual(['ar-letter-alif', 'ar-letter-ba', 'ar-letter-ta', 'ar-letter-tha']);
+  });
+
+  it('does not repeat the story card on later lessons in the same unit', () => {
+    expect(buildLesson(lesson).learn.map((a) => a.type)).toEqual(['learn_card', 'trace']);
+  });
+
+  it('every unit has 2-4 lessons, so the story card always satisfies its item-count schema', () => {
+    for (const node of journeyNodes('ar')) {
+      if (node.kind === 'lesson') expect(node.unit.lessons.length).toBeGreaterThanOrEqual(2);
+      if (node.kind === 'lesson') expect(node.unit.lessons.length).toBeLessThanOrEqual(4);
+    }
+  });
 });
 
 describe('quiz generator', () => {

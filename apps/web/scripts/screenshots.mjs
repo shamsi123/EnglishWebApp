@@ -98,29 +98,29 @@ await shot('09-journey-start');
 // 6–7. Lesson runner + every activity type (lesson 1: Alif)
 await page.getByTestId('node-ar-l1-u1-l1').click();
 const seen = new Set();
-const names = { learn_card: '10-learn-card', trace: '11-trace-letter', listen_tap: '12-listen-tap', match_pairs: '13-match-pairs', drag_drop: '14-drag-drop', pop_balloon: '15-pop-balloon', find_letter: '16-find-letter' };
+const names = { story_card: '10-story-card', learn_card: '11-learn-card', trace: '12-trace-letter', listen_tap: '13-listen-tap', match_pairs: '14-match-pairs', drag_drop: '15-drag-drop', pop_balloon: '16-pop-balloon', find_letter: '17-find-letter' };
 await playLesson(page, {
   onActivity: async (kind, stage) => {
     const key = stage === 'check' ? `check-${kind}` : kind;
     if (seen.has(key)) return;
     seen.add(key);
-    if (stage === 'check' && kind === 'listen_tap') await shot('17-check-quiz');
+    if (stage === 'check' && kind === 'listen_tap') await shot('18-check-quiz');
     else if (stage !== 'check' && names[kind]) await shot(names[kind]);
   },
 });
 
 // 8. Reward (wait for the staggered star animation)
 await page.waitForTimeout(1200);
-await shot('18-reward');
+await shot('19-reward');
 await page.getByRole('button', { name: /^Next/ }).click();
 
 // 9. Help Loop: answer the lesson 2 (Ba) quiz incorrectly
 const outcome = await playLesson(page, { failCheck: true });
 if (outcome !== 'help') throw new Error('expected the Help Loop');
-await shot('19-help-loop');
+await shot('20-help-loop');
 await page.getByRole('button', { name: /Let's practice/ }).click();
 await solveCurrent(page); // re-teach card
-await shot('20-help-loop-practice');
+await shot('21-help-loop-practice');
 await playLesson(page);
 await page.getByRole('button', { name: /^Next/ }).click();
 
@@ -131,21 +131,21 @@ await playLesson(page);
 await page.getByRole('button', { name: /^Next/ }).click();
 await playLesson(page);
 await page.waitForTimeout(1500);
-await shot('21-reward-checkpoint-sticker');
+await shot('22-reward-checkpoint-sticker');
 await page.getByRole('button', { name: /Back to map/ }).click();
 await page.getByTestId('journey').waitFor();
 await page.getByTestId('node-ar-l1-u2-l1').scrollIntoViewIfNeeded();
 await page.evaluate(() => document.querySelector('[data-testid="journey"]').scrollBy(0, -260));
-await shot('22-journey-progress');
+await shot('23-journey-progress');
 
 // 10. Practice Garden — jump the clock 2 days so learned letters are due
 await page.clock.install({ time: new Date(Date.now() + 2 * 86_400_000 + 3_600_000) });
 await page.goto(`${BASE}/garden`);
 await page.getByText('Practice Garden').waitFor();
-await shot('23-practice-garden');
+await shot('24-practice-garden');
 await page.getByRole('button', { name: /Water my garden/ }).click();
 await page.locator('[data-testid^="option-"]').first().waitFor();
-await shot('24-garden-review');
+await shot('25-garden-review');
 for (let i = 0; i < 12; i++) {
   if ((await page.locator('[data-testid^="option-"]').count()) === 0) break;
   // pick the first option: good enough for a walkthrough; wrong answers feed "weak letters"
@@ -162,29 +162,29 @@ for (let i = 0; i < 12; i++) {
   }
 }
 await page.getByText('Your garden grew!').waitFor();
-await shot('25-garden-watered');
+await shot('26-garden-watered');
 
 // 11. Sticker book & avatar
 await page.getByRole('link', { name: /Stickers/ }).click();
-await shot('26-sticker-book');
+await shot('27-sticker-book');
 await page.getByRole('button', { name: /My look/ }).click();
 await page.getByRole('button', { name: '🧢' }).click();
-await shot('27-avatar');
+await shot('28-avatar');
 
 // 12. Parent dashboard (behind the gate)
 await page.goto(`${BASE}/profiles`);
 await page.getByRole('button', { name: 'Grown-ups' }).click();
 await passGate(page);
 await page.getByText('Parent dashboard').waitFor();
-await shot('28-parent-dashboard');
+await shot('29-parent-dashboard');
 await page.getByText('Instruction language').evaluate((el) => el.scrollIntoView({ block: 'end' }));
-await shot('29-parent-settings');
+await shot('30-parent-settings');
 
 // Arabic UI (RTL) — switch instruction language and view the journey
 await page.getByRole('combobox').nth(1).selectOption('ar');
 await page.goto(`${BASE}/journey/ar`);
 await page.getByTestId('journey').waitFor();
-await shot('30-journey-arabic-ui');
+await shot('31-journey-arabic-ui');
 
 // Screen-time limit reached → friendly break screen
 await page.evaluate(() => {
@@ -198,7 +198,7 @@ await page.evaluate(() => {
 });
 await page.goto(`${BASE}/journey/ar`);
 await page.getByText('time for a break').waitFor();
-await shot('31-break-time');
+await shot('32-break-time');
 
 // Desktop: centred phone frame
 await page.setViewportSize({ width: 1280, height: 900 });
@@ -209,7 +209,7 @@ await page.evaluate(() => {
 });
 await page.goto(`${BASE}/journey/ar`);
 await page.getByTestId('journey').waitFor();
-await shot('32-desktop-phone-frame');
+await shot('33-desktop-phone-frame');
 
 await browser.close();
 const real = errors.filter((e) => !/fonts\.g|Failed to load resource/.test(e));

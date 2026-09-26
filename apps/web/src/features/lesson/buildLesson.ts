@@ -36,6 +36,13 @@ export function buildLesson(node: JourneyNode, seed = 1): BuiltLesson {
   const learn: Activity[] = [];
   const play: Activity[] = [];
 
+  // A8 Story Card: opens the unit's first lesson with a scene of all its letters (each unit has 2-4
+  // lessons, matching the schema's item range), before teaching them one by one.
+  if (node.unit.lessons[0]!.id === node.id) {
+    const unitItems = node.unit.lessons.flatMap((l) => l.newItems);
+    learn.push({ id: `${node.unit.id}-story`, type: 'story_card', phase: 'learn', itemId: unitItems[0]!, items: unitItems });
+  }
+
   for (const id of newItems) {
     const item = getItem(id);
     learn.push({ id: `${node.id}-a1`, type: 'learn_card', phase: 'learn', itemId: id });

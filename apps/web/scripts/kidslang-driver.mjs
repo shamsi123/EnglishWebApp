@@ -79,12 +79,13 @@ export async function traceGlyph(page, { sloppy = false } = {}) {
  */
 export async function solveCurrent(page, { wrong = false, before } = {}) {
   await page.waitForFunction(() =>
-    document.querySelector('[data-testid="learn-card"],[data-testid="trace-canvas"],[data-testid^="option-"],[data-testid^="letter-"],[data-testid^="tile-"],[data-testid^="balloon-"],[data-testid^="seg-"]'),
+    document.querySelector('[data-testid="story-card"],[data-testid="learn-card"],[data-testid="trace-canvas"],[data-testid^="option-"],[data-testid^="letter-"],[data-testid^="tile-"],[data-testid^="balloon-"],[data-testid^="seg-"]'),
   );
   await page.waitForTimeout(350);
   const has = async (sel) => (await page.locator(sel).count()) > 0;
   let kind;
-  if (await has('[data-testid="learn-card"]')) kind = 'learn_card';
+  if (await has('[data-testid="story-card"]')) kind = 'story_card';
+  else if (await has('[data-testid="learn-card"]')) kind = 'learn_card';
   else if (await has('[data-testid="trace-canvas"]')) kind = 'trace';
   else if (await has('[data-testid^="option-"]')) kind = 'listen_tap';
   else if (await has('[data-testid^="letter-"]')) kind = 'match_pairs';
@@ -100,9 +101,15 @@ export async function solveCurrent(page, { wrong = false, before } = {}) {
     return kind;
   }
   if (before) await before(kind);
-  const target = kind === 'learn_card' || kind === 'match_pairs' ? null : await captionTarget(page);
+  const target = kind === 'learn_card' || kind === 'match_pairs' || kind === 'story_card' ? null : await captionTarget(page);
 
   switch (kind) {
+    case 'story_card': {
+      const items = page.locator('[data-testid^="story-item-"]');
+      for (let i = 0; i < (await items.count()); i++) await items.nth(i).click();
+      await page.getByRole('button', { name: /Continue/ }).click();
+      break;
+    }
     case 'learn_card':
       await page.getByTestId('learn-card').getByRole('button', { name: /Next/ }).click();
       break;
