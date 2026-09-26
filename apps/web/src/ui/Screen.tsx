@@ -26,7 +26,7 @@ export function Screen({ title, back, right, children, footer, className = '', b
               <span className="rtl:-scale-x-100">⬅️</span>
             </IconButton>
           )}
-          <h1 className="flex-1 truncate text-2xl font-extrabold">{title}</h1>
+          <h1 className="line-clamp-2 flex-1 text-2xl font-extrabold leading-tight">{title}</h1>
           {right}
         </header>
       )}

@@ -177,7 +177,7 @@ await page.getByRole('button', { name: 'Grown-ups' }).click();
 await passGate(page);
 await page.getByText('Parent dashboard').waitFor();
 await shot('28-parent-dashboard');
-await page.getByText('Settings', { exact: false }).first().scrollIntoViewIfNeeded();
+await page.getByText('Instruction language').evaluate((el) => el.scrollIntoView({ block: 'end' }));
 await shot('29-parent-settings');
 
 // Arabic UI (RTL) — switch instruction language and view the journey

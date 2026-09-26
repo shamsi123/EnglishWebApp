@@ -45,7 +45,7 @@ export default function CoursesScreen() {
             <span className="text-2xl font-extrabold">{t('welcome.hindi')}</span>
             <span className="text-base font-bold opacity-80">{t('courses.hindiDesc')}</span>
           </span>
-          <span className="absolute end-4 top-4 rounded-full bg-coral-400 px-3 py-1 text-sm font-extrabold text-white">🔒 {t('welcome.comingSoon')}</span>
+          <span className="absolute -top-3 end-4 rounded-full bg-coral-400 px-3 py-1 text-sm font-extrabold text-white shadow">🔒 {t('welcome.comingSoon')}</span>
         </div>
       </div>
     </Screen>

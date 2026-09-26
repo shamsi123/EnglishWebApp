@@ -26,7 +26,8 @@ export default function GardenScreen() {
   const due = useMemo(() => [...new Set([...data.extraReview, ...dueItems(data.items, new Date())])], [data.extraReview, data.items]);
   const [session] = useState(() => buildReview(due, 'ar', Date.now() % 1e6));
   const wateredToday = data.gardenWaterings.includes(localDate(new Date()));
-  const flowers = data.gardenWaterings.length + Object.values(data.items).filter((m) => m.box >= 3).length;
+  // One flower per watering, plus one per letter the child has learned (moved past box 1).
+  const flowers = data.gardenWaterings.length + Object.values(data.items).filter((m) => m.box >= 2).length;
 
   if (index !== null && session[index]) {
     const activity = session[index]!;

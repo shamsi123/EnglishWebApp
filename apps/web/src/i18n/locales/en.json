@@ -1,29 +1,205 @@
 {
-  "common": { "back": "Back", "next": "Next", "continue": "Continue", "done": "Done", "close": "Close", "listen": "Listen", "cancel": "Cancel", "save": "Save", "delete": "Delete", "locked": "Locked", "soundOn": "Sound on", "soundOff": "Sound off", "grownUps": "Grown-ups" },
-  "welcome": { "tagline": "Learn letters, one happy step at a time!", "pickLanguage": "Which language do you want to learn?", "arabic": "Arabic", "hindi": "Hindi", "comingSoon": "Coming soon", "start": "Let's go!", "greeting": "Hello! I'm Jamal the camel. Let's learn Arabic together!" },
-  "auth": { "signUpTitle": "Create a parent account", "signInTitle": "Welcome back", "email": "Email", "password": "Password", "passwordHint": "At least 8 characters", "consent": "I am the parent or guardian. I agree to the Privacy Policy. KidsLang has no ads and no tracking, and my child only needs a nickname.", "createAccount": "Create account", "signIn": "Sign in", "haveAccount": "I already have an account", "noAccount": "Create a new account", "wrongCredentials": "That email and password don't match.", "invalid": "Please enter a valid email and a password of 8+ characters, and tick the consent box." },
-  "gate": { "title": "Grown-ups only", "hold": "Press and hold for 3 seconds", "holding": "Keep holding…", "question": "What is {{a}} × {{b}}?", "wrong": "Not quite — try again." },
-  "profiles": { "who": "Who's learning?", "whoSpoken": "Who is learning today? Tap your picture!", "add": "Add a child", "addTitle": "New learner", "nickname": "Nickname", "nicknameHint": "A nickname is enough — no real names needed", "ageBand": "Age", "age46": "4–6 years", "age710": "7–10 years", "pickAvatar": "Pick an animal", "pin": "Picture PIN (optional)", "pinHint": "Tap 3 pictures in order", "enterPin": "Tap your 3 secret pictures", "pinWrong": "Let's try those pictures again!", "max": "Up to 4 children", "create": "Create profile" },
-  "courses": { "title": "What shall we learn?", "titleSpoken": "What shall we learn today? Tap Arabic!", "arabicDesc": "Letters & sounds with Jamal the camel", "hindiDesc": "Swar & vyanjan with Hathi the elephant", "lessonsDone": "{{done}} of {{total}} lessons" },
-  "journey": { "unit": "Unit {{n}}", "checkpoint": "Unit checkpoint", "levelTest": "Level test", "youAreHere": "You are here", "tapToStart": "Tap the glowing circle to start your lesson!" },
-  "lesson": { "learn": "Learn", "play": "Play", "check": "Check", "replay": "Hear it again", "leave": "Leave lesson" },
+  "common": {
+    "back": "Back",
+    "next": "Next",
+    "continue": "Continue",
+    "done": "Done",
+    "close": "Close",
+    "listen": "Listen",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "locked": "Locked",
+    "soundOn": "Sound on",
+    "soundOff": "Sound off",
+    "grownUps": "Grown-ups"
+  },
+  "welcome": {
+    "tagline": "Learn letters, one happy step at a time!",
+    "pickLanguage": "Which language do you want to learn?",
+    "arabic": "Arabic",
+    "hindi": "Hindi",
+    "comingSoon": "Coming soon",
+    "start": "Let's go!",
+    "greeting": "Hello! I'm Jamal the camel. Let's learn Arabic together!"
+  },
+  "auth": {
+    "signUpTitle": "Create a parent account",
+    "signInTitle": "Welcome back",
+    "email": "Email",
+    "password": "Password",
+    "passwordHint": "At least 8 characters",
+    "consent": "I am the parent or guardian. I agree to the Privacy Policy. KidsLang has no ads and no tracking, and my child only needs a nickname.",
+    "createAccount": "Create account",
+    "signIn": "Sign in",
+    "haveAccount": "I already have an account",
+    "noAccount": "Create a new account",
+    "wrongCredentials": "That email and password don't match.",
+    "invalid": "Please enter a valid email and a password of 8+ characters, and tick the consent box."
+  },
+  "gate": {
+    "title": "Grown-ups only",
+    "hold": "Press and hold for 3 seconds",
+    "holding": "Keep holding…",
+    "question": "What is {{a}} × {{b}}?",
+    "wrong": "Not quite — try again."
+  },
+  "profiles": {
+    "who": "Who's learning?",
+    "whoSpoken": "Who is learning today? Tap your picture!",
+    "add": "Add a child",
+    "addTitle": "New learner",
+    "nickname": "Nickname",
+    "nicknameHint": "A nickname is enough — no real names needed",
+    "ageBand": "Age",
+    "age46": "4–6 years",
+    "age710": "7–10 years",
+    "pickAvatar": "Pick an animal",
+    "pin": "Picture PIN (optional)",
+    "pinHint": "Tap 3 pictures in order",
+    "enterPin": "Tap your 3 secret pictures",
+    "pinWrong": "Let's try those pictures again!",
+    "max": "Up to 4 children",
+    "create": "Create profile"
+  },
+  "courses": {
+    "title": "What shall we learn?",
+    "titleSpoken": "What shall we learn today? Tap Arabic!",
+    "arabicDesc": "Letters & sounds with Jamal the camel",
+    "hindiDesc": "Swar & vyanjan with Hathi the elephant",
+    "lessonsDone": "{{done}} of {{total}} lessons"
+  },
+  "journey": {
+    "unit": "Unit {{n}}",
+    "checkpoint": "Unit checkpoint",
+    "levelTest": "Level test",
+    "youAreHere": "You are here",
+    "tapToStart": "Tap the glowing circle to start your lesson!"
+  },
+  "lesson": {
+    "learn": "Learn",
+    "play": "Play",
+    "check": "Check",
+    "replay": "Hear it again",
+    "leave": "Leave lesson"
+  },
   "act": {
-    "learn": { "prompt": "This is the letter {{name}}. Listen!", "word": "{{name}} as in {{meaning}}", "forms": "It changes shape in a word", "isolated": "alone", "initial": "start", "medial": "middle", "final": "end" },
-    "listenTap": { "prompt": "Listen, then tap the letter you hear." },
-    "trace": { "prompt": "Trace the letter with your finger.", "clear": "Start over", "check": "I'm done", "good": "Beautiful tracing!", "again": "Let's trace it once more!" },
-    "match": { "prompt": "Match each letter to its picture." },
-    "drag": { "prompt": "Drag the letter that starts {{meaning}} into the basket." },
-    "pop": { "prompt": "Pop the balloons with the letter you hear!", "left": "{{count}} more" },
-    "find": { "prompt": "Find the letter {{name}} in the word and tap it." },
+    "learn": {
+      "prompt": "This is the letter {{name}}. Listen!",
+      "word": "{{name}} as in {{meaning}}",
+      "forms": "It changes shape in a word",
+      "isolated": "alone",
+      "initial": "start",
+      "medial": "middle",
+      "final": "end"
+    },
+    "listenTap": {
+      "prompt": "Listen, then tap the letter you hear."
+    },
+    "trace": {
+      "prompt": "Trace the letter with your finger.",
+      "clear": "Start over",
+      "check": "I'm done",
+      "good": "Beautiful tracing!",
+      "again": "Let's trace it once more!"
+    },
+    "match": {
+      "prompt": "Match each letter to its picture."
+    },
+    "drag": {
+      "prompt": "Drag the letter that starts {{meaning}} into the basket."
+    },
+    "pop": {
+      "prompt": "Pop the balloons with the letter you hear!",
+      "left": "{{count}} more"
+    },
+    "find": {
+      "prompt": "Find the letter {{name}} in the word and tap it."
+    },
     "tryAgain": "Try again!",
     "great": "Great job!",
     "hint": "Here's a clue!"
   },
-  "reward": { "title": "Hooray!", "mastered": "You learned a new letter!", "checkpoint": "Unit complete!", "levelTest": "Level complete!", "sticker": "New sticker!", "trophy": "New trophy!", "next": "Next", "map": "Back to map", "spoken": "Hooray! You did it!" },
-  "help": { "title": "Let's practice together!", "body": "Jamal will help you with these letters, then you can try again.", "start": "Let's practice", "retry": "Try again", "retryTitle": "You're ready!", "retryBody": "Let's try the quiz one more time." },
-  "garden": { "title": "Practice Garden", "due": "{{count}} letters to practise today", "none": "All caught up! Come back tomorrow.", "start": "Water my garden", "watered": "Your garden grew!", "spoken": "Welcome to your garden! Practise your letters to help it grow.", "flowers": "{{count}} flowers" },
-  "stickers": { "title": "Sticker book", "avatar": "My look", "trophies": "Trophies", "unlockAt": "{{n}} ★", "empty": "Finish a unit to earn a sticker!", "animal": "Animal", "color": "Colour", "item": "Hat", "totalStars": "{{count}} stars" },
-  "parent": { "title": "Parent dashboard", "overview": "Progress", "mastered": "Lessons mastered", "current": "Current lesson", "stars": "Stars", "streak": "Day streak", "time": "Minutes this week", "weak": "Weak letters", "noWeak": "No weak letters yet — great!", "assignReview": "Add to today's review", "assigned": "Added to review", "settings": "Settings", "dailyLimit": "Daily limit (minutes)", "quiet": "Quiet hours (8 pm – 7 am)", "sound": "Sound effects", "music": "Voice & music", "uiLang": "Instruction language", "contrast": "High contrast", "unlock": "Unlock a lesson", "unlockBtn": "Unlock", "deleteChild": "Delete profile and all data", "deleteConfirm": "Tap again to confirm", "signOut": "Sign out", "children": "Children", "manage": "Manage children", "sync": "{{count}} answers waiting to sync", "synced": "All progress synced" },
-  "break": { "title": "Great job, time for a break!", "body": "You've played for today. See you tomorrow!", "quiet": "It's quiet time. See you soon!" },
-  "nav": { "map": "Map", "garden": "Garden", "stickers": "Stickers" }
+  "reward": {
+    "title": "Hooray!",
+    "mastered": "You learned a new letter!",
+    "checkpoint": "Unit complete!",
+    "levelTest": "Level complete!",
+    "sticker": "New sticker!",
+    "trophy": "New trophy!",
+    "next": "Next",
+    "map": "Back to map",
+    "spoken": "Hooray! You did it!"
+  },
+  "help": {
+    "title": "Let's practice together!",
+    "body": "Jamal will help you with these letters, then you can try again.",
+    "start": "Let's practice",
+    "retry": "Try again",
+    "retryTitle": "You're ready!",
+    "retryBody": "Let's try the quiz one more time."
+  },
+  "garden": {
+    "title": "Practice Garden",
+    "due": "{{count}} letters to practise today",
+    "none": "All caught up! Come back tomorrow.",
+    "start": "Water my garden",
+    "watered": "Your garden grew!",
+    "spoken": "Welcome to your garden! Practise your letters to help it grow.",
+    "flowers": "{{count}} flowers",
+    "flowers_one": "{{count}} flower",
+    "flowers_other": "{{count}} flowers",
+    "due_one": "{{count}} letter to practise today",
+    "due_other": "{{count}} letters to practise today"
+  },
+  "stickers": {
+    "title": "Sticker book",
+    "avatar": "My look",
+    "trophies": "Trophies",
+    "unlockAt": "{{n}} ★",
+    "empty": "Finish a unit to earn a sticker!",
+    "animal": "Animal",
+    "color": "Colour",
+    "item": "Hat",
+    "totalStars": "{{count}} stars"
+  },
+  "parent": {
+    "title": "Parent dashboard",
+    "overview": "Progress",
+    "mastered": "Lessons mastered",
+    "current": "Current lesson",
+    "stars": "Stars",
+    "streak": "Day streak",
+    "time": "Minutes this week",
+    "weak": "Weak letters",
+    "noWeak": "No weak letters yet — great!",
+    "assignReview": "Add to today's review",
+    "assigned": "Added to review",
+    "settings": "Settings",
+    "dailyLimit": "Daily limit (minutes)",
+    "quiet": "Quiet hours (8 pm – 7 am)",
+    "sound": "Sound effects",
+    "music": "Voice & music",
+    "uiLang": "Instruction language",
+    "contrast": "High contrast",
+    "unlock": "Unlock a lesson",
+    "unlockBtn": "Unlock",
+    "deleteChild": "Delete profile and all data",
+    "deleteConfirm": "Tap again to confirm",
+    "signOut": "Sign out",
+    "children": "Children",
+    "manage": "Manage children",
+    "sync": "{{count}} answers waiting to sync",
+    "synced": "All progress synced"
+  },
+  "break": {
+    "title": "Great job, time for a break!",
+    "body": "You've played for today. See you tomorrow!",
+    "quiet": "It's quiet time. See you soon!"
+  },
+  "nav": {
+    "map": "Map",
+    "garden": "Garden",
+    "stickers": "Stickers"
+  }
 }
