@@ -3,8 +3,9 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 import { findNode, masteryFor, nodeItems } from '@/content/course';
 import { review } from '@/engine/leitner';
 import { evaluateMastery, type ItemResult, type MasteryResult } from '@/engine/mastery';
-import { enqueue, newId } from '@/offline/syncQueue';
+import { enqueue, flush, newId } from '@/offline/syncQueue';
 import type { UiLang } from '@/i18n';
+import * as api from './api';
 import { emptyChildData, localDate, touchStreak, type ChildData, type LessonSession } from './progress';
 
 export interface Parent {
@@ -42,16 +43,28 @@ export const defaultSettings = (): ChildSettings => ({
   highContrast: false,
 });
 
+/** Backend session (services/api). Null means the app runs fully local/offline — see `lib/api.ts`. */
+export interface BackendAuth {
+  access: string;
+  refresh: string;
+}
+
 interface State {
   parent: Parent | null;
   parentSignedIn: boolean;
+  backendAuth: BackendAuth | null;
   children: Child[];
   activeChildId: string | null;
   data: Record<string, ChildData>;
   settings: Record<string, ChildSettings>;
 
-  registerParent(email: string, passwordHash: string): void;
-  signIn(email: string, passwordHash: string): boolean;
+  /**
+   * Local-first auth (works fully offline). When `VITE_API_URL` is configured, both also make a
+   * best-effort call to the real backend (services/api) and store its tokens on success; a failed
+   * or unreachable backend never blocks the local account — see docs/SCREENS.md's placeholder table.
+   */
+  registerParent(email: string, password: string): Promise<void>;
+  signIn(email: string, password: string): Promise<boolean>;
   signOut(): void;
   addChild(child: Omit<Child, 'id' | 'createdAt'>): string;
   updateChild(id: string, patch: Partial<Omit<Child, 'id'>>): void;
@@ -67,6 +80,9 @@ interface State {
   waterGarden(): void;
   overrideUnlock(childId: string, nodeId: string): void;
   assignExtraReview(childId: string, itemIds: string[]): void;
+
+  /** Sends every queued attempt batch to the backend (FR-42). No-op offline or signed out locally-only. */
+  flushQueue(): Promise<void>;
 }
 
 export async function hashSecret(secret: string): Promise<string> {
@@ -86,23 +102,49 @@ export const useStore = create<State>()(
     (set, get) => ({
       parent: null,
       parentSignedIn: false,
+      backendAuth: null,
       children: [],
       activeChildId: null,
       data: {},
       settings: {},
 
-      registerParent: (email, passwordHash) =>
+      registerParent: async (email, password) => {
+        const passwordHash = await hashSecret(password);
+        const cleanEmail = email.trim().toLowerCase();
         set({
-          parent: { email: email.trim().toLowerCase(), passwordHash, consentGivenAt: new Date().toISOString(), createdAt: new Date().toISOString() },
+          parent: { email: cleanEmail, passwordHash, consentGivenAt: new Date().toISOString(), createdAt: new Date().toISOString() },
           parentSignedIn: true,
-        }),
-      signIn: (email, passwordHash) => {
+        });
+        if (!api.apiEnabled) return;
+        try {
+          const auth = await api.register(cleanEmail, password, true);
+          set({ backendAuth: { access: auth.accessToken, refresh: auth.refreshToken } });
+        } catch {
+          // Offline, API down, or this email is already registered server-side from elsewhere.
+          // The local account still works — see the "web app doesn't call the API yet" note in docs/SCREENS.md.
+        }
+      },
+
+      signIn: async (email, password) => {
+        const passwordHash = await hashSecret(password);
+        const cleanEmail = email.trim().toLowerCase();
         const p = get().parent;
-        const ok = !!p && p.email === email.trim().toLowerCase() && p.passwordHash === passwordHash;
+        const ok = !!p && p.email === cleanEmail && p.passwordHash === passwordHash;
         if (ok) set({ parentSignedIn: true });
+        // The local record alone decides `ok`: this device may be offline, or may never have seen a
+        // parent who registered on another device — cross-device login isn't supported in this pass.
+        if (api.apiEnabled) {
+          try {
+            const auth = await api.login(cleanEmail, password);
+            set({ backendAuth: { access: auth.accessToken, refresh: auth.refreshToken } });
+          } catch {
+            /* backend unreachable or credentials differ there; local result still governs sign-in */
+          }
+        }
         return ok;
       },
-      signOut: () => set({ parentSignedIn: false, activeChildId: null }),
+
+      signOut: () => set({ parentSignedIn: false, activeChildId: null, backendAuth: null }),
 
       addChild: (child) => {
         const id = newId();
@@ -111,18 +153,27 @@ export const useStore = create<State>()(
           data: { ...s.data, [id]: emptyChildData() },
           settings: { ...s.settings, [id]: defaultSettings() },
         }));
+        // Mirrors the offline-created profile to the backend under the same id (idempotent there too),
+        // so later quiz/attempt syncs for this child have a row to attach to. Best-effort, non-blocking.
+        if (api.apiEnabled && get().backendAuth) {
+          void api
+            .createChild({ id, nickname: child.nickname, ageBand: child.ageBand, avatar: child.avatar, picturePinHash: child.pinHash })
+            .catch(() => {});
+        }
         return id;
       },
       updateChild: (id, patch) => set((s) => ({ children: s.children.map((c) => (c.id === id ? { ...c, ...patch } : c)) })),
       // FR-05: deleting a profile removes all of its data (progress, attempts, rewards, logs).
-      deleteChild: (id) =>
+      deleteChild: (id) => {
         set((s) => {
           const data = { ...s.data };
           const settings = { ...s.settings };
           delete data[id];
           delete settings[id];
           return { children: s.children.filter((c) => c.id !== id), data, settings, activeChildId: s.activeChildId === id ? null : s.activeChildId };
-        }),
+        });
+        if (api.apiEnabled && get().backendAuth) void api.deleteChild(id).catch(() => {});
+      },
       selectChild: (id) => set({ activeChildId: id }),
       updateSettings: (childId, patch) =>
         set((s) => ({ settings: { ...s.settings, [childId]: { ...(s.settings[childId] ?? defaultSettings()), ...patch } } })),
@@ -191,6 +242,53 @@ export const useStore = create<State>()(
             };
           }),
         );
+
+        // The server is the source of truth for unlocks (FR-12): it recomputes mastery from the same
+        // results with the mirrored C# engine and can confirm an unlock the client missed (e.g. an older
+        // client build with a stricter local engine). We only ever upgrade from this reply, never
+        // silently revoke a mastered lesson the child already saw and celebrated — a revoke needs a
+        // deliberate, gentle UI of its own, which is future work.
+        const childId = get().activeChildId;
+        if (api.apiEnabled && get().backendAuth && childId) {
+          // A finished quiz is also a natural moment to flush any attempts queued during it.
+          void get().flushQueue();
+          void api
+            .submitQuiz(nodeId, childId, results, traceAccuracy)
+            .then((server) => {
+              if (server.mastered && !result.mastered) {
+                set((s) => {
+                  const d = s.data[childId];
+                  if (!d) return {};
+                  const prev = d.lessons[nodeId] ?? { status: 'in_progress' as const, bestScore: 0, stars: 0, attempts: 0 };
+                  return {
+                    data: {
+                      ...s.data,
+                      [childId]: {
+                        ...d,
+                        lessons: {
+                          ...d.lessons,
+                          [nodeId]: {
+                            ...prev,
+                            status: 'mastered',
+                            stars: Math.max(prev.stars, server.stars),
+                            bestScore: Math.max(prev.bestScore, server.score),
+                            masteredAt: prev.masteredAt ?? new Date().toISOString(),
+                          },
+                        },
+                      },
+                    },
+                  };
+                });
+              } else if (server.mastered !== result.mastered && import.meta.env.DEV) {
+                // Surfaces mastery-engine drift between the TS and C# implementations during development.
+                console.warn(`[kidslang] mastery mismatch for ${nodeId}: client=${result.mastered} server=${server.mastered}`);
+              }
+            })
+            .catch(() => {
+              /* offline or API down: the provisional local result stands until the next sync */
+            });
+        }
+
         return result;
       },
 
@@ -224,15 +322,48 @@ export const useStore = create<State>()(
           const d = s.data[childId] ?? emptyChildData();
           return { data: { ...s.data, [childId]: { ...d, extraReview: [...new Set([...d.extraReview, ...itemIds])] } } };
         }),
+
+      flushQueue: async () => {
+        if (!api.apiEnabled || !get().backendAuth) return;
+        for (const [childId, d] of Object.entries(get().data)) {
+          if (d.queue.length === 0) continue;
+          const remaining = await flush(d.queue, async (batch) => {
+            const res = await api.submitAttemptsBatch(batch.map((a) => ({ ...a, score: null })));
+            return { acceptedIds: res.acceptedIds };
+          });
+          set((s) => {
+            const current = s.data[childId];
+            if (!current) return {};
+            return { data: { ...s.data, [childId]: { ...current, queue: remaining } } };
+          });
+        }
+      },
     }),
     {
       name: 'kidslang',
       version: 1,
       storage: createJSONStorage(() => localStorage),
-      partialize: (s) => ({ parent: s.parent, parentSignedIn: s.parentSignedIn, children: s.children, activeChildId: s.activeChildId, data: s.data, settings: s.settings }),
+      partialize: (s) => ({
+        parent: s.parent,
+        parentSignedIn: s.parentSignedIn,
+        backendAuth: s.backendAuth,
+        children: s.children,
+        activeChildId: s.activeChildId,
+        data: s.data,
+        settings: s.settings,
+      }),
     },
   ),
 );
+
+// Keeps the API client's bearer token in sync with the store, including after rehydration from
+// localStorage and on sign-out — `api.ts` never imports the store directly (avoids a cycle).
+const syncApiTokens = (auth: BackendAuth | null) => api.setTokens(auth ? { access: auth.access, refresh: auth.refresh } : null);
+syncApiTokens(useStore.getState().backendAuth);
+useStore.subscribe((s, prev) => {
+  if (s.backendAuth !== prev.backendAuth) syncApiTokens(s.backendAuth);
+});
+api.setOnRefresh((tokens) => useStore.setState({ backendAuth: tokens }));
 
 export function useActiveChild() {
   const child = useStore((s) => s.children.find((c) => c.id === s.activeChildId) ?? null);

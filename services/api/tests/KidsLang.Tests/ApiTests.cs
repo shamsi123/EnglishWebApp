@@ -107,6 +107,46 @@ public class ApiTests(ApiFactory factory) : IClassFixture<ApiFactory>
     }
 
     [Fact]
+    public async Task Creating_a_child_with_the_same_client_id_twice_is_a_no_op()
+    {
+        var (client, _) = await SignUp();
+        var id = Guid.NewGuid();
+        var req = new CreateChildRequest("Sara", "4-6", new AvatarDto("🦊", "#c4b5fd", "none"), null, id);
+        var first = await client.PostAsJsonAsync("/api/v1/children", req);
+        var second = await client.PostAsJsonAsync("/api/v1/children", req);
+        Assert.Equal(HttpStatusCode.Created, first.StatusCode);
+        Assert.Equal(HttpStatusCode.Created, second.StatusCode);
+        Assert.Equal(id, (await first.Content.ReadFromJsonAsync<ChildDto>())!.Id);
+        Assert.Equal(id, (await second.Content.ReadFromJsonAsync<ChildDto>())!.Id);
+        Assert.Single(await client.GetFromJsonAsync<List<ChildDto>>("/api/v1/children") ?? []);
+    }
+
+    [Fact]
+    public async Task A_replayed_child_id_does_not_count_against_the_four_child_limit()
+    {
+        var (client, _) = await SignUp();
+        var id = Guid.NewGuid();
+        await AddChild(client, "Sara"); // uses server-generated ids
+        var req = new CreateChildRequest("Omar", "7-10", new AvatarDto("🐯", "#fde68a", "none"), null, id);
+        for (var i = 0; i < 5; i++)
+        {
+            var res = await client.PostAsJsonAsync("/api/v1/children", req);
+            Assert.Equal(HttpStatusCode.Created, res.StatusCode);
+        }
+    }
+
+    [Fact]
+    public async Task A_client_id_that_belongs_to_another_parent_is_rejected()
+    {
+        var (a, _) = await SignUp();
+        var id = Guid.NewGuid();
+        await a.PostAsJsonAsync("/api/v1/children", new CreateChildRequest("Sara", "4-6", new AvatarDto("🦊", "#fff", "none"), null, id));
+        var (b, _) = await SignUp();
+        var res = await b.PostAsJsonAsync("/api/v1/children", new CreateChildRequest("Sara", "4-6", new AvatarDto("🦊", "#fff", "none"), null, id));
+        Assert.Equal(HttpStatusCode.Conflict, res.StatusCode);
+    }
+
+    [Fact]
     public async Task Attempt_batch_is_idempotent_on_client_ids()
     {
         var (client, _) = await SignUp();

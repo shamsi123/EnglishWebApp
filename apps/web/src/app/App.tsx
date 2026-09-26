@@ -7,6 +7,7 @@ import { Mascot } from '@/ui/Mascot';
 import { Button } from '@/ui/Button';
 import { PhoneFrame } from './PhoneFrame';
 import { useBreakReason, useChildSession } from './useChildSession';
+import { useOnlineSync } from './useOnlineSync';
 
 const Welcome = lazy(() => import('@/features/welcome/WelcomeScreen'));
 const Auth = lazy(() => import('@/features/auth/AuthScreen'));
@@ -65,6 +66,7 @@ function BreakScreen({ reason }: { reason: 'limit' | 'quiet' }) {
 
 function Shell() {
   useChildSession();
+  useOnlineSync();
   const { settings } = useActiveChild();
   return (
     <div className={`h-full ${settings.highContrast ? 'high-contrast' : ''}`}>

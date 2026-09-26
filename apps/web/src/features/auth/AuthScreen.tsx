@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { hashSecret, useStore } from '@/lib/store';
+import { useStore } from '@/lib/store';
 import { Button } from '@/ui/Button';
 import { Screen } from '@/ui/Screen';
 
@@ -20,13 +20,12 @@ export default function AuthScreen({ mode }: { mode: 'signup' | 'signin' }) {
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
-    const hash = await hashSecret(password);
     if (mode === 'signup') {
       if (!/^\S+@\S+\.\S+$/.test(email) || password.length < 8 || !consent) return setError(t('auth.invalid'));
-      register(email, hash);
+      await register(email, password);
       navigate('/profiles/new');
     } else {
-      if (!signIn(email, hash)) return setError(t('auth.wrongCredentials'));
+      if (!(await signIn(email, password))) return setError(t('auth.wrongCredentials'));
       navigate('/profiles');
     }
   };

@@ -6,7 +6,11 @@ public sealed record RefreshRequest(string RefreshToken);
 public sealed record AuthResponse(string AccessToken, string RefreshToken, Guid ParentId);
 
 public sealed record AvatarDto(string Animal, string Color, string Item);
-public sealed record CreateChildRequest(string Nickname, string AgeBand, AvatarDto Avatar, string? PicturePinHash);
+/// <summary>
+/// Id is optional and client-generated (like ActivityAttempt.Id): the same profile the child plays with
+/// offline becomes this row when the parent is online, and creating it twice is a no-op (idempotent).
+/// </summary>
+public sealed record CreateChildRequest(string Nickname, string AgeBand, AvatarDto Avatar, string? PicturePinHash, Guid? Id = null);
 public sealed record UpdateChildRequest(string? Nickname, string? AgeBand, AvatarDto? Avatar, int? DailyLimitMinutes);
 public sealed record ChildDto(Guid Id, string Nickname, string AgeBand, AvatarDto Avatar, bool HasPin, int DailyLimitMinutes);
 

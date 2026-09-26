@@ -36,6 +36,7 @@ public sealed class CreateChildRequestValidator : AbstractValidator<CreateChildR
         RuleFor(x => x.AgeBand).Must(a => a is "4-6" or "7-10");
         RuleFor(x => x.Avatar).NotNull();
         RuleFor(x => x.PicturePinHash).MaximumLength(128);
+        RuleFor(x => x.Id).NotEqual(Guid.Empty).When(x => x.Id is not null);
     }
 }
 

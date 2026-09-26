@@ -32,7 +32,7 @@ apps/web/src/
   offline/      attempt sync queue
   content/      Zod schemas + course loader (reads /content)
   i18n/         locales (en, ar) + direction helpers
-  lib/          store, progress/journey rules, Arabic script helpers
+  lib/          store, backend API client (api.ts), progress/journey rules, Arabic script helpers
   ui/           design-system components
 apps/web/scripts/   Playwright driver + screenshot walkthrough
 apps/web/e2e/       Playwright E2E specs

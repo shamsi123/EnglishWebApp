@@ -230,6 +230,7 @@ BRD §14 #12 · FR-30 – FR-35, FR-05
 | Audio | ⚠️ Uses the device's text-to-speech voice. **Native-speaker recordings are still needed** (paths are in `items.json`) |
 | Pictures & mascots | ⚠️ Emoji placeholders until illustration/animation assets exist |
 | Tracing | ⚠️ Scores coverage + accuracy. Stroke **order and direction** scoring (FR-16) still needs per-letter stroke data |
-| Offline | ✅ Service worker caches the app and fonts; answers queue locally. ⚠️ The web app doesn't call the API yet |
+| Offline | ✅ Service worker caches the app and fonts; answers queue locally and flush to the API once online (FR-42) |
 | Backend API (`services/api`) | ✅ Auth, profiles, journey, server-side mastery, idempotent attempt sync, review, report, unlock; tests pass on SQLite and PostgreSQL |
+| Web ↔ API integration | ✅ The web app calls the real backend when `VITE_API_URL` is set: parent register/login, child profiles (idempotent by id), and quiz submission, with the server able to *upgrade* a locally-missed mastery on sync (FR-12). ⚠️ Sign-in is local-first, so a parent's account doesn't yet follow them to a second device with no local history there |
 | Hindi | ⏳ Not started (card shows *Coming soon*) |

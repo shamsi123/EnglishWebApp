@@ -14,10 +14,22 @@ public sealed class ChildService(IKidsLangDb db)
 
     public async Task<Result<ChildDto>> CreateAsync(Guid parentId, CreateChildRequest req, CancellationToken ct)
     {
+        // Idempotent replay: the offline-created profile already exists — hand back the same row, no duplicate,
+        // no count against the 4-child limit.
+        if (req.Id is { } id)
+        {
+            var existing = await db.ChildProfiles.FirstOrDefaultAsync(c => c.Id == id, ct);
+            if (existing is not null)
+                return existing.ParentId == parentId
+                    ? Result<ChildDto>.Ok(ToDto(existing))
+                    : Result<ChildDto>.Fail(ErrorKind.Conflict, "This profile id belongs to a different account.");
+        }
+
         if (await db.ChildProfiles.CountAsync(c => c.ParentId == parentId, ct) >= MaxChildren)
             return Result<ChildDto>.Fail(ErrorKind.Conflict, $"A parent can have up to {MaxChildren} child profiles.");
         var child = new ChildProfile
         {
+            Id = req.Id ?? Guid.NewGuid(),
             ParentId = parentId,
             Nickname = req.Nickname.Trim(),
             AgeBand = req.AgeBand,

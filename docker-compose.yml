@@ -15,12 +15,18 @@ services:
       ConnectionStrings__Postgres: Host=postgres;Database=kidslang;Username=kidslang;Password=kidslang
       # Local development only — use a secret store for any shared environment.
       Jwt__SigningKey: compose-dev-signing-key-change-me-0123456789
+      Cors__Origins__0: http://localhost:3000
     ports: ["8080:8080"]
     depends_on: [postgres]
 
   web:
-    build: { context: ., dockerfile: apps/web/Dockerfile }
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      # The browser (not the web container) calls this, so it's the API's host-exposed port.
+      args: { VITE_API_URL: http://localhost:8080/api/v1 }
     ports: ["3000:80"]
+    depends_on: [api]
 
 volumes:
   pgdata:

@@ -4,6 +4,8 @@ COPY content/ content/
 COPY apps/web/package*.json apps/web/
 RUN cd apps/web && npm ci
 COPY apps/web/ apps/web/
+# Vite env vars are baked in at build time — pass the browser-reachable API URL as a build arg.
+ARG VITE_API_URL
 RUN cd apps/web && npm run build
 
 FROM nginx:alpine

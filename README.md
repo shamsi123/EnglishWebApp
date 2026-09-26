@@ -18,7 +18,7 @@ Each lesson runs **Learn → Play → Check**, and the next lesson unlocks only 
 ## Run it
 
 ```bash
-# Web app (http://localhost:5173)
+# Web app (http://localhost:5173) — works fully offline on its own (progress lives on the device)
 cd apps/web
 npm install
 npm run dev
@@ -31,7 +31,10 @@ dotnet run --project src/KidsLang.Api --urls http://localhost:5080
 docker compose up --build
 ```
 
-The web app currently keeps progress on the device (localStorage), so it runs without the API.
+The web app runs standalone with progress kept on the device (localStorage) — no API needed. Point it at a
+running API by setting `VITE_API_URL` (see `apps/web/.env.example`), and it will *also* register/log the
+parent in on the real backend, mirror child profiles there, and sync quiz results and queued attempts once
+online — while still working the same way if the API is unreachable.
 
 ## Checks
 
