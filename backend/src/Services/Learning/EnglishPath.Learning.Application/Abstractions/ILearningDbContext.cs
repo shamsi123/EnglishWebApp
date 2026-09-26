@@ -1,5 +1,6 @@
 using EnglishPath.Learning.Domain.Completions;
 using EnglishPath.Learning.Domain.Lessons;
+using EnglishPath.Learning.Domain.Media;
 using EnglishPath.Learning.Domain.Placement;
 using EnglishPath.Learning.Domain.Units;
 using EnglishPath.Learning.Domain.Vocabulary;
@@ -22,6 +23,8 @@ public interface ILearningDbContext
     DbSet<LearnerPlacement> Placements { get; }
 
     DbSet<VocabularyItem> Vocabulary { get; }
+
+    DbSet<MediaAsset> Media { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

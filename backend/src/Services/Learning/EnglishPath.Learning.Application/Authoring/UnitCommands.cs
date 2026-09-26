@@ -1,3 +1,4 @@
+using EnglishPath.BuildingBlocks.Application;
 using EnglishPath.BuildingBlocks.Domain;
 using EnglishPath.Learning.Application.Abstractions;
 using EnglishPath.Learning.Domain.Units;
@@ -6,7 +7,12 @@ using MediatR;
 
 namespace EnglishPath.Learning.Application.Authoring;
 
-public sealed record CreateUnitCommand(CefrLevel Level, int Order, string Title) : IRequest<Result<Guid>>;
+public sealed record CreateUnitCommand(CefrLevel Level, int Order, string Title) : IRequest<Result<Guid>>, IAuditedCommand
+{
+    public string AuditAction => "unit.created";
+
+    public string? AuditTarget => null;
+}
 
 internal sealed class CreateUnitValidator : AbstractValidator<CreateUnitCommand>
 {

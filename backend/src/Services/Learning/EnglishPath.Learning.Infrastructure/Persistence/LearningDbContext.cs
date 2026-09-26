@@ -1,9 +1,11 @@
 using EnglishPath.Learning.Application.Abstractions;
 using EnglishPath.Learning.Domain.Completions;
 using EnglishPath.Learning.Domain.Lessons;
+using EnglishPath.Learning.Domain.Media;
 using EnglishPath.Learning.Domain.Placement;
 using EnglishPath.Learning.Domain.Units;
 using EnglishPath.Learning.Domain.Vocabulary;
+using EnglishPath.BuildingBlocks.Persistence;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 
@@ -26,6 +28,8 @@ public sealed class LearningDbContext(DbContextOptions<LearningDbContext> option
     public DbSet<LearnerPlacement> Placements => Set<LearnerPlacement>();
 
     public DbSet<VocabularyItem> Vocabulary => Set<VocabularyItem>();
+
+    public DbSet<MediaAsset> Media => Set<MediaAsset>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -119,6 +123,20 @@ public sealed class LearningDbContext(DbContextOptions<LearningDbContext> option
             b.Property(v => v.Id).HasMaxLength(64);
             b.Property(v => v.Word).HasMaxLength(100);
         });
+
+        modelBuilder.Entity<MediaAsset>(b =>
+        {
+            b.ToTable("MediaAssets");
+            b.Property(m => m.Kind).HasConversion<string>().HasMaxLength(8);
+            b.Property(m => m.ContentType).HasMaxLength(64);
+            b.Property(m => m.Path).HasMaxLength(200);
+            b.Property(m => m.Url).HasMaxLength(500);
+            b.Property(m => m.OriginalFileName).HasMaxLength(200);
+            b.HasIndex(m => m.Path).IsUnique();
+            b.HasIndex(m => m.UploadedAt);
+        });
+
+        modelBuilder.AddAuditEntries();
 
         // MassTransit transactional outbox/inbox tables.
         modelBuilder.AddInboxStateEntity();

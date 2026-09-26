@@ -1,4 +1,5 @@
 using System.Text.Json;
+using EnglishPath.BuildingBlocks.Application;
 using EnglishPath.BuildingBlocks.Domain;
 using EnglishPath.Learning.Application.Abstractions;
 using EnglishPath.Learning.Domain.Placement;
@@ -11,12 +12,22 @@ namespace EnglishPath.Learning.Application.Placement;
 public sealed record PlacementItemDto(Guid Id, string Level, string Skill, bool IsActive, JsonElement Exercise);
 
 /// <summary>Adds a question to the placement item bank (content team, FR-10).</summary>
-public sealed record CreatePlacementItemCommand(CefrLevel Level, JsonElement Exercise) : IRequest<Result<Guid>>;
+public sealed record CreatePlacementItemCommand(CefrLevel Level, JsonElement Exercise) : IRequest<Result<Guid>>, IAuditedCommand
+{
+    public string AuditAction => "placement_item.created";
+
+    public string? AuditTarget => null;
+}
 
 public sealed record ListPlacementItemsQuery(CefrLevel? Level) : IRequest<Result<IReadOnlyList<PlacementItemDto>>>;
 
 /// <summary>Retires an item; answers already given keep referring to it.</summary>
-public sealed record RetirePlacementItemCommand(Guid ItemId) : IRequest<Result>;
+public sealed record RetirePlacementItemCommand(Guid ItemId) : IRequest<Result>, IAuditedCommand
+{
+    public string AuditAction => "placement_item.retired";
+
+    public string? AuditTarget => ItemId.ToString();
+}
 
 internal sealed class PlacementItemAdminHandlers(ILearningDbContext db, IClock clock) :
     IRequestHandler<CreatePlacementItemCommand, Result<Guid>>,

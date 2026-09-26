@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\EnglishPath.BuildingBlocks.Application\EnglishPath.BuildingBlocks.Application.csproj" />
+  </ItemGroup>
+</Project>

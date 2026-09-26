@@ -12,6 +12,7 @@ public static class DependencyInjection
         {
             c.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly);
             c.AddOpenBehavior(typeof(ValidationBehavior<,>));
+            c.AddOpenBehavior(typeof(AuditBehavior<,>));
         });
         services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly, includeInternalTypes: true);
         return services;

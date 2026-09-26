@@ -27,6 +27,12 @@ services:
     image: redis:7-alpine
     ports: ["6379:6379"]
 
+  # Blob storage emulator for lesson media (FR-81); Azure Blob Storage + Front Door in the cloud.
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite
+    command: azurite-blob --blobHost 0.0.0.0 --loose
+    ports: ["10000:10000"]
+
   identity-api:
     profiles: [services]
     build: { context: ./backend, args: { SERVICE: Identity } }
@@ -47,6 +53,8 @@ services:
       RabbitMq__Host: rabbitmq
       Auth__Authority: "http://identity-api:8080/"
       ConnectionStrings__Learning: "Server=sqlserver;Database=EnglishPath_Learning;User Id=sa;Password=Dev_Passw0rd!;TrustServerCertificate=True"
+      ConnectionStrings__Media: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;"
+      Media__PublicBaseUrl: "http://localhost:10000/devstoreaccount1/media"
       ConnectionStrings__Progress: "Server=sqlserver;Database=EnglishPath_Progress;User Id=sa;Password=Dev_Passw0rd!;TrustServerCertificate=True"
     depends_on: &service-deps
       sqlserver: { condition: service_healthy }

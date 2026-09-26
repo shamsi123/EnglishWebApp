@@ -59,6 +59,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EnglishPath.Identity.Tests"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EnglishPath.Learning.ApplicationTests", "tests\EnglishPath.Learning.ApplicationTests\EnglishPath.Learning.ApplicationTests.csproj", "{BFC64E40-BB91-4545-A8C1-5120C02D69E1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EnglishPath.BuildingBlocks.Persistence", "src\BuildingBlocks\EnglishPath.BuildingBlocks.Persistence\EnglishPath.BuildingBlocks.Persistence.csproj", "{E5090618-07E2-44B7-939D-F65680AA04CD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -148,6 +150,10 @@ Global
 		{BFC64E40-BB91-4545-A8C1-5120C02D69E1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BFC64E40-BB91-4545-A8C1-5120C02D69E1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BFC64E40-BB91-4545-A8C1-5120C02D69E1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E5090618-07E2-44B7-939D-F65680AA04CD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E5090618-07E2-44B7-939D-F65680AA04CD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E5090618-07E2-44B7-939D-F65680AA04CD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E5090618-07E2-44B7-939D-F65680AA04CD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{996DB33F-3DFF-4B89-9738-A58AF99BD4B6} = {ACC76B9B-3814-4231-B235-60EAD8F627F1}
@@ -176,5 +182,6 @@ Global
 		{7A74F49D-E978-4862-8E7B-C8F13CA61615} = {EA83CA05-69D7-441A-8734-3FC6F7F2DDCE}
 		{3BD0B347-28BE-4048-889C-42EDB8E25477} = {85E31FC0-391A-4932-93D8-9563ABC6DA7D}
 		{BFC64E40-BB91-4545-A8C1-5120C02D69E1} = {85E31FC0-391A-4932-93D8-9563ABC6DA7D}
+		{E5090618-07E2-44B7-939D-F65680AA04CD} = {98A8AE84-4EEF-4A06-8E88-517DDBA77D3B}
 	EndGlobalSection
 EndGlobal

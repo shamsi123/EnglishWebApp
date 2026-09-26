@@ -2,10 +2,13 @@ using System.Text.Json;
 using EnglishPath.BuildingBlocks.Web;
 using EnglishPath.Learning.Application.Authoring;
 using EnglishPath.Learning.Application.Learner;
+using EnglishPath.Learning.Application.Media;
 using EnglishPath.Learning.Application.Placement;
 using EnglishPath.Learning.Domain.Lessons;
+using EnglishPath.Learning.Domain.Media;
 using EnglishPath.Learning.Domain.Units;
 using MediatR;
+using Microsoft.AspNetCore.Mvc;
 
 namespace EnglishPath.Learning.Api;
 
@@ -28,6 +31,11 @@ public sealed record PlacementItemRequest(CefrLevel Level, JsonElement Exercise)
 public sealed record UpdateLessonDraftRequest(string Title, JsonElement Content);
 
 public sealed record RollbackRequest(int Version);
+
+public static class MediaLimits
+{
+    public const int MaxBytes = 10 * 1024 * 1024;
+}
 
 public static class Endpoints
 {
@@ -84,6 +92,38 @@ public static class Endpoints
         admin.MapPost("/lessons/{lessonId:guid}/submit", async (Guid lessonId, ISender sender, CancellationToken ct) =>
             (await sender.Send(new SubmitLessonForReviewCommand(lessonId), ct)).ToHttpResult())
             .RequireAuthorization(Policies.Author);
+
+        admin.MapGet("/outline", async (ISender sender, CancellationToken ct) =>
+            (await sender.Send(new GetCourseOutlineQuery(), ct)).ToHttpResult());
+
+        admin.MapGet("/audit", async (string? target, int? limit, ISender sender, CancellationToken ct) =>
+            (await sender.Send(new GetAuditLogQuery(target, limit ?? 50), ct)).ToHttpResult());
+
+        admin.MapGet("/export", async (ISender sender, CancellationToken ct) =>
+            (await sender.Send(new ExportContentQuery(), ct)).ToHttpResult());
+
+        admin.MapPost("/import", async (ContentPackageDto package, ISender sender, CancellationToken ct) =>
+            (await sender.Send(new ImportContentCommand(package), ct)).ToHttpResult())
+            .RequireAuthorization(Policies.Author);
+
+        // FR-81: multipart upload of one image or audio file (max 10 MB). Token-authenticated, so no antiforgery.
+        admin.MapPost("/media", async (IFormFile file, ISender sender, CancellationToken ct) =>
+            {
+                if (file.Length > MediaLimits.MaxBytes)
+                {
+                    return Results.Problem(title: "Files must be 10 MB or smaller.", statusCode: StatusCodes.Status413PayloadTooLarge);
+                }
+
+                using var buffer = new MemoryStream((int)file.Length);
+                await file.CopyToAsync(buffer, ct);
+                return (await sender.Send(new UploadMediaCommand(Path.GetFileName(file.FileName), buffer.ToArray()), ct)).ToHttpResult();
+            })
+            .RequireAuthorization(Policies.Author)
+            .DisableAntiforgery()
+            .WithMetadata(new RequestSizeLimitAttribute(MediaLimits.MaxBytes + 64 * 1024));
+
+        admin.MapGet("/media", async (MediaKind? kind, ISender sender, CancellationToken ct) =>
+            (await sender.Send(new ListMediaQuery(kind), ct)).ToHttpResult());
 
         admin.MapGet("/placement-items", async (CefrLevel? level, ISender sender, CancellationToken ct) =>
             (await sender.Send(new ListPlacementItemsQuery(level), ct)).ToHttpResult());

@@ -15,17 +15,48 @@ namespace EnglishPath.Learning.Application.Authoring;
 // CMS authoring workflow: Draft → Review → Published, with versioning and rollback (FR-80, FR-82).
 // Role checks (Content Author / Reviewer, FR-91) are applied at the endpoint.
 
-public sealed record CreateLessonCommand(Guid UnitId, int Order, string Title, JsonElement Content, LessonKind Kind = LessonKind.Lesson) : IRequest<Result<Guid>>;
+public sealed record CreateLessonCommand(Guid UnitId, int Order, string Title, JsonElement Content, LessonKind Kind = LessonKind.Lesson)
+    : IRequest<Result<Guid>>, IAuditedCommand
+{
+    public string AuditAction => "lesson.created";
 
-public sealed record UpdateLessonDraftCommand(Guid LessonId, string Title, JsonElement Content) : IRequest<Result>;
+    public string? AuditTarget => null;
+}
 
-public sealed record SubmitLessonForReviewCommand(Guid LessonId) : IRequest<Result>;
+public sealed record UpdateLessonDraftCommand(Guid LessonId, string Title, JsonElement Content) : IRequest<Result>, IAuditedCommand
+{
+    public string AuditAction => "lesson.draft_updated";
 
-public sealed record RequestLessonChangesCommand(Guid LessonId) : IRequest<Result>;
+    public string? AuditTarget => LessonId.ToString();
+}
 
-public sealed record PublishLessonCommand(Guid LessonId) : IRequest<Result>;
+public sealed record SubmitLessonForReviewCommand(Guid LessonId) : IRequest<Result>, IAuditedCommand
+{
+    public string AuditAction => "lesson.submitted";
 
-public sealed record RollbackLessonCommand(Guid LessonId, int Version) : IRequest<Result>;
+    public string? AuditTarget => LessonId.ToString();
+}
+
+public sealed record RequestLessonChangesCommand(Guid LessonId) : IRequest<Result>, IAuditedCommand
+{
+    public string AuditAction => "lesson.changes_requested";
+
+    public string? AuditTarget => LessonId.ToString();
+}
+
+public sealed record PublishLessonCommand(Guid LessonId) : IRequest<Result>, IAuditedCommand
+{
+    public string AuditAction => "lesson.published";
+
+    public string? AuditTarget => LessonId.ToString();
+}
+
+public sealed record RollbackLessonCommand(Guid LessonId, int Version) : IRequest<Result>, IAuditedCommand
+{
+    public string AuditAction => $"lesson.rolled_back_to_v{Version}";
+
+    public string? AuditTarget => LessonId.ToString();
+}
 
 internal sealed class CreateLessonValidator : AbstractValidator<CreateLessonCommand>
 {

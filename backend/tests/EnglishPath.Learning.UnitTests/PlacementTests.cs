@@ -165,3 +165,19 @@ public class PlacementItemTests
     public void Requires_a_placement_skill() =>
         Assert.Contains("Tag the item", PlacementItem.Create(CefrLevel.A1, Item("multipleChoice", "speaking").ToJsonString(), Now).Error!.Message);
 }
+
+public class AudioSignatureTests
+{
+    [Theory]
+    [InlineData(new byte[] { 0, 0, 0, 0x20, 0x66, 0x74, 0x79, 0x70, 0x4D, 0x34, 0x41, 0x20 }, "audio/mp4")]
+    [InlineData(new byte[] { 0x4F, 0x67, 0x67, 0x53, 0, 2 }, "audio/ogg")]
+    [InlineData(new byte[] { 0x1A, 0x45, 0xDF, 0xA3, 1 }, "audio/webm")]
+    [InlineData(new byte[] { 0xFF, 0xFB, 0x90, 0x44 }, "audio/mpeg")]
+    [InlineData(new byte[] { 0x49, 0x44, 0x33, 4 }, "audio/mpeg")]
+    public void Detects_supported_formats(byte[] header, string contentType) =>
+        Assert.Equal(contentType, EnglishPath.Learning.Domain.Media.AudioSignature.Detect(header)?.ContentType);
+
+    [Fact]
+    public void Rejects_other_bytes() =>
+        Assert.Null(EnglishPath.Learning.Domain.Media.AudioSignature.Detect("%PDF-1.7"u8));
+}
