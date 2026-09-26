@@ -49,3 +49,4 @@ jobs:
             dotnet ef migrations has-pending-model-changes \
               -p src/Services/$s/EnglishPath.$s.Infrastructure -s src/Services/$s/EnglishPath.$s.Api --no-build --configuration Release
           done
+          dotnet ef migrations has-pending-model-changes -p src/Services/Identity/EnglishPath.Identity.Api --no-build --configuration Release

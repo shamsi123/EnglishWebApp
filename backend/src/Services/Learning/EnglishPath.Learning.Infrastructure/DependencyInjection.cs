@@ -19,7 +19,7 @@ public static class DependencyInjection
             sql => sql.MigrationsHistoryTable("__EFMigrationsHistory", LearningDbContext.Schema).EnableRetryOnFailure()));
         services.AddScoped<ILearningDbContext>(sp => sp.GetRequiredService<LearningDbContext>());
         services.AddHealthChecks().AddDbContextCheck<LearningDbContext>("learning-db", tags: ["ready"]);
-        services.AddMessaging<LearningDbContext>(configuration);
+        services.AddMessaging<LearningDbContext>("Learning", configuration, x => x.AddConsumer<UserDeletedConsumer>());
         return services;
     }
 }

@@ -9,7 +9,8 @@ Scope, requirements and target architecture are in [docs/BRD.md](docs/BRD.md). T
 apps/web/            Learner PWA — React 18, Vite, TypeScript, Tailwind, TanStack Query, Zustand, vite-plugin-pwa
 packages/core/       Shared TS used by web (and later Capacitor): content schema, answer checking, SM-2, XP/streak rules, /api/v1 client
 backend/
-  src/Gateway/                   YARP gateway: /api/v1/{service}/** routing, CORS, rate limiting
+  src/Gateway/                   YARP gateway: /connect/*, /api/v1/{service}/** routing, CORS, rate limiting
+  src/Services/Identity/         Identity: accounts, OpenIddict token server, age/guardian consent, onboarding, deletion
   src/Services/Learning/         Learning & Content: course map, lesson bundles, completions, CMS workflow
   src/Services/Progress/         Progress & Gamification: XP, daily goal, streaks, skill radar, SRS review cards
   src/BuildingBlocks/            Domain primitives, MediatR validation pipeline, web defaults (JWT, problem details, health, OpenAPI),
@@ -34,23 +35,35 @@ pnpm --filter @englishpath/web dev          # http://localhost:5173 (proxies /ap
 docker compose up -d sqlserver rabbitmq redis
 cd backend
 dotnet test EnglishPath.sln
-dotnet run --project src/Services/Learning/EnglishPath.Learning.Api   # :5101, migrates its DB in Development
+dotnet run --project src/Services/Identity/EnglishPath.Identity.Api   # :5103, migrates its DB and seeds roles/clients in Development
+dotnet run --project src/Services/Learning/EnglishPath.Learning.Api   # :5101
 dotnet run --project src/Services/Progress/EnglishPath.Progress.Api   # :5102
 dotnet run --project src/Gateway/EnglishPath.Gateway                  # :5000
 ```
 
 Or run everything in containers: `docker compose --profile services up --build`.
 
+With the stack running, `python3 scripts/smoke_test.py` checks the main flows end to end through the gateway: sign-up, sign-in, refresh, onboarding, authoring, lesson completion, progress, and deletion with erasure.
+
 Without the backend, the Learn tab offers a **demo lesson** (Pre-A1 greetings) that runs entirely in the browser.
 
-### Local authentication
+### Authentication
 
-The Identity service (FR-01, OIDC) isn't built yet. In Development, services accept HS256 tokens signed with `Auth:DevSigningKey` from `appsettings.Development.json`: issuer `englishpath-dev`, audience `englishpath-api`, `sub` = a user GUID, and optional `role` claims (`ContentAuthor`, `Reviewer`, `SuperAdmin`, `Support`). Outside Development, `Auth:Authority` must point at the OIDC issuer.
+The Identity service is an OAuth 2.0 / OIDC token server (OpenIddict). It issues 15-minute JWT access tokens and rotating refresh tokens (NFR-06). Learning and Progress validate tokens against its published keys (`Auth:Authority`).
+
+- **Email + password:** `POST /connect/token` with `grant_type=password`, `client_id=englishpath-web`, `username`, `password`, `scope=openid email roles offline_access api`.
+- **Google / Apple (FR-01):** the app signs in with the provider's SDK and exchanges the ID token with `grant_type=urn:englishpath:params:oauth:grant-type:external_id_token`, `provider=google|apple` and `id_token`. On first sign-in the server asks for `date_of_birth` (and `guardian_email` for minors) through `error_uri …/registration_required`. Configure the provider client ids under `Identity:ExternalProviders`.
+- **Refresh:** `grant_type=refresh_token`. Password resets and account deletion invalidate refresh tokens.
+- **Rules:** passwords need at least 12 characters, with no composition rules (ASVS 2.1). Five failed sign-ins lock the account for 15 minutes. Under 13 is refused (configurable via `Identity:MinimumAge`). Ages 13–17 can't sign in until a guardian approves the emailed link; declining deletes the account (FR-05).
+- **Development:** a super admin `admin@englishpath.local` / `local-admin-password` is seeded, and emails (verification, reset and consent links) are written to the Identity service log instead of being sent.
 
 ## API (v1)
 
 | Method & path | Who | Purpose |
 | --- | --- | --- |
+| `POST /api/v1/identity/accounts` | anyone | Register (email, password, date of birth, guardian email for minors, terms) |
+| `POST /api/v1/identity/accounts/{verify-email,forgot-password,reset-password,guardian-consent}` | anyone (link token) | FR-04, FR-05 |
+| `GET /api/v1/identity/me`, `PUT /me/onboarding`, `POST /me/delete` | learner | Profile, onboarding (FR-02), self-service deletion with re-authentication (FR-04) |
 | `GET /api/v1/learning/course-map` | learner | Levels → units → lessons with locked/unlocked/completed (FR-20) |
 | `GET /api/v1/learning/lessons/{id}` | learner | Live lesson bundle, cacheable offline (FR-21, NFR-05) |
 | `POST /api/v1/learning/lessons/{id}/completions` | learner | Idempotent sync of a finished lesson; server re-grades and publishes `LessonCompleted` |
@@ -67,15 +80,16 @@ In Development, each service serves Swagger UI at `/swagger`.
 
 - **Content is typed JSON** (BRD §8.3 #2). The zod schema in `packages/core` and the C# model in `Learning.Domain/Content` describe the same shape. Lesson design rules are enforced before review: 8–15 exercises, ≤ 10 new words, at least one listening item, valid answer keys.
 - **Offline-first learning loop** (#3). The client scores answers locally for instant feedback. On sync, the server re-grades every attempt against the exact lesson version played; only first attempts count. Completion IDs are generated by the client, so retries are safe.
-- **Event-driven progress** (#4). `LessonCompleted` goes through a transactional outbox to RabbitMQ; Progress consumes it with inbox de-duplication.
+- **Event-driven progress** (#4). `LessonCompleted` goes through a transactional outbox to RabbitMQ; Progress consumes it with inbox de-duplication. Queues are named per service, so each service receives every event it subscribes to.
+- **Right to erasure** (NFR-08). Deleting an account publishes `UserDeleted`; Learning and Progress delete that learner's data.
 - **Client/server parity.** XP, streak and SM-2 rules exist in both TS (`packages/core`) and C#. The tests on both sides use the same vectors.
 
 ## Status against the MVP plan
 
-Done: monorepo, CI, PWA shell, lesson player with all 7 exercise types, course map, Learning & Content service with the CMS workflow API, Progress service (XP, daily goal, streaks with freezes, skill radar, SRS), gateway, local infrastructure.
+Done: monorepo, CI, PWA shell, lesson player with all 7 exercise types, course map, Identity service (sign-up and sign-in, Google/Apple exchange, age and guardian consent, verification, reset, onboarding, deletion with erasure), Learning & Content service with the CMS workflow API, Progress service (XP, daily goal, streaks with freezes, skill radar, SRS), gateway, local infrastructure.
 
 Next, in rough order:
-- Identity service (FR-01–05): OpenIddict, email/Google/Apple sign-in, refresh-token rotation, consent, account deletion
+- Web sign-in, sign-up, onboarding and email-link screens; Google/Apple SDK buttons; SendGrid email sender; production signing certificates from the vault; token pruning; admin role management (FR-91) with audit log (FR-92)
 - Offline attempt queue in the web app (IndexedDB/Dexie) and wiring the player to `completeLesson` (NFR-05, FR-27 resume)
 - Placement test (FR-10/11) and unit checkpoints (FR-12) driving unlocks
 - Admin CMS app with live preview, media upload/CDN, TTS, bulk import (FR-80/81/83/85), audit log (FR-92), support tools (FR-90)

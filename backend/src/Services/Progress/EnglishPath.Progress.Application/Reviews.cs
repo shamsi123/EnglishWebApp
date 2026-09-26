@@ -1,6 +1,5 @@
 using EnglishPath.BuildingBlocks.Application;
 using EnglishPath.BuildingBlocks.Domain;
-using EnglishPath.Progress.Domain.Learners;
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -44,7 +43,7 @@ public static class DailyGoals
     public static readonly IReadOnlyDictionary<int, int> XpByMinutes = new Dictionary<int, int> { [5] = 10, [10] = 20, [15] = 30, [20] = 40 };
 }
 
-internal sealed class ReviewHandlers(IProgressDbContext db, ICurrentUser user, IClock clock) :
+internal sealed class ReviewHandlers(IProgressDbContext db, ICurrentUser user, IClock clock, ISender sender) :
     IRequestHandler<GetDueReviewsQuery, Result<IReadOnlyList<DueCardDto>>>,
     IRequestHandler<ReviewWordCommand, Result<DueCardDto>>,
     IRequestHandler<SetDailyGoalCommand, Result>
@@ -75,17 +74,6 @@ internal sealed class ReviewHandlers(IProgressDbContext db, ICurrentUser user, I
         return new DueCardDto(card.VocabularyId, card.DueAt, card.Repetitions);
     }
 
-    public async Task<Result> Handle(SetDailyGoalCommand request, CancellationToken cancellationToken)
-    {
-        var progress = await db.Learners.SingleOrDefaultAsync(l => l.Id == user.UserId, cancellationToken);
-        if (progress is null)
-        {
-            progress = LearnerProgress.Start(user.UserId);
-            db.Learners.Add(progress);
-        }
-
-        progress.SetDailyGoal(DailyGoals.XpByMinutes[request.Minutes]);
-        await db.SaveChangesAsync(cancellationToken);
-        return Result.Success();
-    }
+    public Task<Result> Handle(SetDailyGoalCommand request, CancellationToken cancellationToken) =>
+        sender.Send(new ApplyOnboardingCommand(user.UserId, request.Minutes), cancellationToken);
 }

@@ -18,7 +18,12 @@ public static class DependencyInjection
             sql => sql.MigrationsHistoryTable("__EFMigrationsHistory", ProgressDbContext.Schema).EnableRetryOnFailure()));
         services.AddScoped<IProgressDbContext>(sp => sp.GetRequiredService<ProgressDbContext>());
         services.AddHealthChecks().AddDbContextCheck<ProgressDbContext>("progress-db", tags: ["ready"]);
-        services.AddMessaging<ProgressDbContext>(configuration, x => x.AddConsumer<LessonCompletedConsumer>());
+        services.AddMessaging<ProgressDbContext>("Progress", configuration, x =>
+        {
+            x.AddConsumer<LessonCompletedConsumer>();
+            x.AddConsumer<UserDeletedConsumer>();
+            x.AddConsumer<OnboardingCompletedConsumer>();
+        });
         return services;
     }
 }

@@ -18,7 +18,10 @@ namespace EnglishPath.BuildingBlocks.Web;
 /// <summary>Cross-cutting setup shared by every service: auth, problem details, health, OpenAPI.</summary>
 public static class ServiceDefaults
 {
-    public static IHostApplicationBuilder AddServiceDefaults(this IHostApplicationBuilder builder, string serviceName)
+    /// <param name="useJwtBearer">
+    /// False for the Identity service, which validates its own tokens with OpenIddict.
+    /// </param>
+    public static IHostApplicationBuilder AddServiceDefaults(this IHostApplicationBuilder builder, string serviceName, bool useJwtBearer = true)
     {
         var services = builder.Services;
 
@@ -44,8 +47,12 @@ public static class ServiceDefaults
             });
         });
 
-        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-            .AddJwtBearer(o => ConfigureJwt(o, builder.Configuration, builder.Environment));
+        if (useJwtBearer)
+        {
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(o => ConfigureJwt(o, builder.Configuration, builder.Environment));
+        }
+
         services.AddAuthorization();
 
         return builder;
@@ -70,9 +77,9 @@ public static class ServiceDefaults
     }
 
     /// <summary>
-    /// NFR-06: access tokens are JWTs issued by the Identity service (OIDC). For local development
-    /// without Identity running, <c>Auth:DevSigningKey</c> enables symmetric-key tokens; it is
-    /// rejected outside the Development environment.
+    /// NFR-06: access tokens are JWTs issued by the Identity service (OIDC), validated against its
+    /// published signing keys (<c>Auth:Authority</c>). For tests and tooling without Identity running,
+    /// <c>Auth:DevSigningKey</c> enables symmetric-key tokens; it is rejected outside Development.
     /// </summary>
     private static void ConfigureJwt(JwtBearerOptions options, IConfiguration config, IHostEnvironment env)
     {

@@ -27,12 +27,25 @@ services:
     image: redis:7-alpine
     ports: ["6379:6379"]
 
+  identity-api:
+    profiles: [services]
+    build: { context: ./backend, args: { SERVICE: Identity } }
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      RabbitMq__Host: rabbitmq
+      ConnectionStrings__Identity: "Server=sqlserver;Database=EnglishPath_Identity;User Id=sa;Password=Dev_Passw0rd!;TrustServerCertificate=True"
+      Identity__Issuer: "http://identity-api:8080/"
+    depends_on:
+      sqlserver: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+
   learning-api:
     profiles: [services]
     build: { context: ./backend, args: { SERVICE: Learning } }
     environment: &service-env
       ASPNETCORE_ENVIRONMENT: Development
       RabbitMq__Host: rabbitmq
+      Auth__Authority: "http://identity-api:8080/"
       ConnectionStrings__Learning: "Server=sqlserver;Database=EnglishPath_Learning;User Id=sa;Password=Dev_Passw0rd!;TrustServerCertificate=True"
       ConnectionStrings__Progress: "Server=sqlserver;Database=EnglishPath_Progress;User Id=sa;Password=Dev_Passw0rd!;TrustServerCertificate=True"
     depends_on: &service-deps
@@ -52,7 +65,7 @@ services:
       ASPNETCORE_ENVIRONMENT: Production
       Cors__AllowedOrigins__0: "http://localhost:5173"
     ports: ["5000:8080"]
-    depends_on: [learning-api, progress-api]
+    depends_on: [identity-api, learning-api, progress-api]
 
 volumes:
   sqldata:

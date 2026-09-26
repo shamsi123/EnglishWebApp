@@ -21,3 +21,15 @@ public sealed record LessonPublished(Guid LessonId, Guid UnitId, int Version, Da
 
 /// <summary>Published by Progress when a streak is lost.</summary>
 public sealed record StreakBroken(Guid UserId, int PreviousStreak, DateOnly LearnerLocalDay);
+
+/// <summary>Published by Identity when an account is created.</summary>
+public sealed record UserRegistered(Guid UserId, DateTimeOffset RegisteredAt, bool IsMinor);
+
+/// <summary>
+/// Published by Identity when an account is deleted. Every service must erase the user's
+/// personal data on receipt (NFR-08, right to erasure).
+/// </summary>
+public sealed record UserDeleted(Guid UserId, DateTimeOffset DeletedAt);
+
+/// <summary>Published by Identity when the learner finishes or changes onboarding (FR-02).</summary>
+public sealed record OnboardingCompleted(Guid UserId, string Goal, int DailyMinutes, string NativeLanguage);
