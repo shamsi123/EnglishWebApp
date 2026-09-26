@@ -53,6 +53,29 @@ export interface DueCardDto {
   repetitions: number;
 }
 
+export type LearningGoal = "work" | "travel" | "study" | "exam";
+
+export interface RegisterRequest {
+  email: string;
+  password: string;
+  /** YYYY-MM-DD */
+  dateOfBirth: string;
+  /** Required for learners aged 13–17 (FR-05). */
+  guardianEmail?: string;
+  acceptedTerms: boolean;
+}
+
+export interface MeDto {
+  id: string;
+  email: string;
+  emailVerified: boolean;
+  guardianConsent: "NotRequired" | "Pending" | "Granted";
+  hasPassword: boolean;
+  logins: string[];
+  roles: string[];
+  onboarding: { goal: LearningGoal; dailyMinutes: 5 | 10 | 15 | 20; nativeLanguage: string } | null;
+}
+
 export interface DashboardDto {
   streak: number;
   longestStreak: number;
@@ -77,10 +100,15 @@ export interface ProblemDetails {
 export class ApiError extends Error {
   constructor(
     readonly status: number,
-    readonly problem: ProblemDetails | undefined,
+    readonly problem: (ProblemDetails & { code?: string }) | undefined,
   ) {
     super(problem?.title ?? `Request failed with status ${status}`);
     this.name = "ApiError";
+  }
+
+  /** Machine-readable error code from the API, e.g. `account.email_taken`. */
+  get code(): string | undefined {
+    return this.problem?.code;
   }
 }
 
@@ -88,6 +116,8 @@ export interface ApiClientOptions {
   /** Gateway origin, e.g. `https://api.englishpath.app`. Empty string = same origin. */
   baseUrl: string;
   getAccessToken?: () => string | null | Promise<string | null>;
+  /** Called once on a 401 to get a fresh token (e.g. `AuthSession.refresh`); the request is retried with it. */
+  onUnauthorized?: () => Promise<string | null>;
   fetch?: typeof fetch;
 }
 
@@ -129,17 +159,51 @@ export class ApiClient {
     return this.request("POST", `/progress/reviews/${encodeURIComponent(vocabularyId)}`, { grade });
   }
 
-  async request<T>(method: string, path: string, body?: unknown): Promise<T> {
-    const headers: Record<string, string> = { Accept: "application/json" };
-    const token = await this.options.getAccessToken?.();
-    if (token) headers.Authorization = `Bearer ${token}`;
-    if (body !== undefined) headers["Content-Type"] = "application/json";
+  // Identity & onboarding (FR-01–05)
 
-    const response = await this.fetchImpl(`${this.options.baseUrl}/api/${API_VERSION}${path}`, {
-      method,
-      headers,
-      body: body === undefined ? undefined : JSON.stringify(body),
-    });
+  register(body: RegisterRequest): Promise<{ userId: string; requiresGuardianConsent: boolean }> {
+    return this.request("POST", "/identity/accounts", body);
+  }
+
+  verifyEmail(userId: string, token: string): Promise<void> {
+    return this.request("POST", "/identity/accounts/verify-email", { userId, token });
+  }
+
+  resendVerification(): Promise<void> {
+    return this.request("POST", "/identity/accounts/resend-verification");
+  }
+
+  forgotPassword(email: string): Promise<void> {
+    return this.request("POST", "/identity/accounts/forgot-password", { email });
+  }
+
+  resetPassword(userId: string, token: string, newPassword: string): Promise<void> {
+    return this.request("POST", "/identity/accounts/reset-password", { userId, token, newPassword });
+  }
+
+  guardianConsent(userId: string, token: string, granted: boolean): Promise<void> {
+    return this.request("POST", "/identity/accounts/guardian-consent", { userId, token, granted });
+  }
+
+  getMe(): Promise<MeDto> {
+    return this.request("GET", "/identity/me");
+  }
+
+  saveOnboarding(body: { goal: LearningGoal; dailyMinutes: 5 | 10 | 15 | 20; nativeLanguage: string }): Promise<void> {
+    return this.request("PUT", "/identity/me/onboarding", body);
+  }
+
+  /** FR-04 self-service deletion; password accounts must re-enter their password. */
+  deleteAccount(password?: string): Promise<void> {
+    return this.request("POST", "/identity/me/delete", { password: password ?? null });
+  }
+
+  async request<T>(method: string, path: string, body?: unknown): Promise<T> {
+    let response = await this.send(method, path, body, await this.options.getAccessToken?.());
+    if (response.status === 401 && this.options.onUnauthorized) {
+      const fresh = await this.options.onUnauthorized();
+      if (fresh) response = await this.send(method, path, body, fresh);
+    }
 
     if (!response.ok) {
       let problem: ProblemDetails | undefined;
@@ -153,5 +217,16 @@ export class ApiClient {
 
     if (response.status === 204) return undefined as T;
     return (await response.json()) as T;
+  }
+
+  private send(method: string, path: string, body: unknown, token: string | null | undefined): Promise<Response> {
+    const headers: Record<string, string> = { Accept: "application/json" };
+    if (token) headers.Authorization = `Bearer ${token}`;
+    if (body !== undefined) headers["Content-Type"] = "application/json";
+    return this.fetchImpl(`${this.options.baseUrl}/api/${API_VERSION}${path}`, {
+      method,
+      headers,
+      body: body === undefined ? undefined : JSON.stringify(body),
+    });
   }
 }

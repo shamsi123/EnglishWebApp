@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import type { LessonState } from "@englishpath/core";
 import { api } from "../../shared/api";
 import { t } from "../../shared/i18n";
-import { DEMO_LESSON_ID } from "../../fixtures/ids";
+
 
 const stateStyles: Record<LessonState, string> = {
   locked: "bg-slate-200 text-slate-400 dark:bg-slate-800",
@@ -35,7 +35,7 @@ export function LearnPage() {
             <button type="button" className="btn-primary" onClick={() => courseMap.refetch()}>
               {t("learn.retry")}
             </button>
-            <Link to={`/lesson/${DEMO_LESSON_ID}`} className="btn border-2 border-slate-200 dark:border-slate-700">
+            <Link to="/try" className="btn border-2 border-slate-200 dark:border-slate-700">
               {t("learn.tryDemo")}
             </Link>
           </div>

@@ -1,19 +1,33 @@
-import { useReducer, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useReducer, useRef, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import type { Answer, Lesson } from "@englishpath/core";
+import type { Answer, AttemptDto, Lesson } from "@englishpath/core";
 import { api } from "../../shared/api";
+import { localDay } from "../../shared/dates";
 import { t } from "../../shared/i18n";
-import { demoLesson, DEMO_LESSON_ID } from "../../fixtures/demoLesson";
+import { demoLesson } from "../../fixtures/demoLesson";
+import { enqueueCompletion, flushCompletions } from "./completionQueue";
 import { ExerciseView } from "./ExerciseView";
 import { currentExercise, initSession, isMistakeReview, progress, reduceSession, summary } from "./lessonSession";
 
 export default function LessonPage() {
   const { lessonId = "" } = useParams();
-  const lesson = useQuery({
-    queryKey: ["lesson", lessonId],
-    queryFn: () => (lessonId === DEMO_LESSON_ID ? Promise.resolve(demoLesson) : api.getLesson(lessonId)),
-  });
+  const queryClient = useQueryClient();
+  const lesson = useQuery({ queryKey: ["lesson", lessonId], queryFn: () => api.getLesson(lessonId) });
+
+  // Queue first so the result survives going offline or closing the app, then try to sync (NFR-05).
+  const complete = async (attempts: AttemptDto[]) => {
+    if (!lesson.data) return;
+    await enqueueCompletion({
+      lessonId,
+      request: { completionId: crypto.randomUUID(), lessonVersion: lesson.data.version, learnerLocalDay: localDay(), attempts },
+    });
+    const synced = await flushCompletions().catch(() => 0);
+    if (synced > 0) {
+      await queryClient.invalidateQueries({ queryKey: ["course-map"] });
+      await queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+    }
+  };
 
   if (lesson.isPending) return <div className="mx-auto mt-8 h-64 max-w-player animate-pulse rounded-2xl bg-slate-100 dark:bg-slate-800" />;
   if (lesson.isError) {
@@ -24,10 +38,23 @@ export default function LessonPage() {
       </div>
     );
   }
-  return <LessonPlayer lesson={lesson.data} />;
+  return <LessonPlayer lesson={lesson.data} exitTo="/learn" onComplete={complete} />;
 }
 
-export function LessonPlayer({ lesson }: { lesson: Lesson }) {
+/** FR-03 guest mode: the demo lesson runs locally, then invites the learner to sign up. */
+export function TryLessonPage() {
+  return <LessonPlayer lesson={demoLesson} exitTo="/sign-up" summaryNote={t("guest.saveProgress")} />;
+}
+
+interface LessonPlayerProps {
+  lesson: Lesson;
+  exitTo: string;
+  /** Called once when the summary is reached, with every attempt in order. */
+  onComplete?: (attempts: AttemptDto[]) => void | Promise<void>;
+  summaryNote?: string;
+}
+
+export function LessonPlayer({ lesson, exitTo, onComplete, summaryNote }: LessonPlayerProps) {
   const navigate = useNavigate();
   const [session, dispatch] = useReducer(
     (state: ReturnType<typeof initSession>, action: Parameters<typeof reduceSession>[2]) => reduceSession(lesson, state, action),
@@ -36,9 +63,29 @@ export function LessonPlayer({ lesson }: { lesson: Lesson }) {
   );
   const [answer, setAnswer] = useState<Answer | null>(null);
   const exercise = currentExercise(lesson, session);
+  const attempts = useRef<AttemptDto[]>([]);
+  const shownAt = useRef(Date.now());
+  const reported = useRef(false);
+
+  useEffect(() => {
+    if (session.phase === "exercise") shownAt.current = Date.now();
+  }, [session.phase, session.turn]);
+
+  useEffect(() => {
+    if (session.phase === "summary" && !reported.current) {
+      reported.current = true;
+      void onComplete?.(attempts.current);
+    }
+  }, [session.phase, onComplete]);
 
   const submit = () => {
-    if (!answer) return;
+    if (!answer || !exercise) return;
+    attempts.current.push({
+      exerciseId: exercise.id,
+      answer,
+      answeredAt: new Date().toISOString(),
+      timeTakenMs: Date.now() - shownAt.current,
+    });
     dispatch({ type: "submit", answer });
     navigator.vibrate?.(30);
   };
@@ -50,7 +97,7 @@ export function LessonPlayer({ lesson }: { lesson: Lesson }) {
   return (
     <div className="mx-auto flex min-h-full max-w-player flex-col px-4 pt-safe">
       <header className="flex items-center gap-3 py-3">
-        <button type="button" className="btn min-w-touch p-0 text-xl" aria-label={t("lesson.close")} onClick={() => navigate("/learn")}>
+        <button type="button" className="btn min-w-touch p-0 text-xl" aria-label={t("lesson.close")} onClick={() => navigate(exitTo)}>
           ✕
         </button>
         <div className="h-3 flex-1 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800" role="progressbar"
@@ -95,6 +142,7 @@ export function LessonPlayer({ lesson }: { lesson: Lesson }) {
                 <dd className="text-2xl font-bold">{summary(lesson, session).accuracy}%</dd>
               </div>
             </dl>
+            {summaryNote && <p className="mt-6 rounded-2xl bg-slate-50 p-4 dark:bg-slate-900">{summaryNote}</p>}
           </div>
         )}
       </div>
@@ -125,7 +173,7 @@ export function LessonPlayer({ lesson }: { lesson: Lesson }) {
         {session.phase === "intro" && <button type="button" className="btn-primary w-full" onClick={() => dispatch({ type: "start" })}>{t("lesson.start")}</button>}
         {session.phase === "exercise" && <button type="button" className="btn-primary w-full" disabled={!answer} onClick={submit}>{t("lesson.check")}</button>}
         {session.phase === "feedback" && <button type="button" className="btn-primary w-full" onClick={next}>{t("lesson.continue")}</button>}
-        {session.phase === "summary" && <button type="button" className="btn-primary w-full" onClick={() => navigate("/learn")}>{t("lesson.done")}</button>}
+        {session.phase === "summary" && <button type="button" className="btn-primary w-full" onClick={() => navigate(exitTo)}>{t("lesson.done")}</button>}
       </footer>
     </div>
   );

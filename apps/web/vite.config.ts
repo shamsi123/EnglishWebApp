@@ -44,7 +44,7 @@ export default defineConfig({
   server: {
     port: 5173,
     // Local gateway (backend/src/Gateway) listens on 5000.
-    proxy: { "/api": "http://localhost:5000" },
+    proxy: { "/api": "http://localhost:5000", "/connect": "http://localhost:5000" },
   },
   test: {
     environment: "jsdom",

@@ -43,9 +43,9 @@ dotnet run --project src/Gateway/EnglishPath.Gateway                  # :5000
 
 Or run everything in containers: `docker compose --profile services up --build`.
 
-With the stack running, `python3 scripts/smoke_test.py` checks the main flows end to end through the gateway: sign-up, sign-in, refresh, onboarding, authoring, lesson completion, progress, and deletion with erasure.
+With the stack running, `python3 scripts/smoke_test.py` checks the main flows end to end through the gateway: sign-up, sign-in, refresh, onboarding, authoring, lesson completion, progress, and deletion with erasure. It publishes a "Smoke test" unit into your local database.
 
-Without the backend, the Learn tab offers a **demo lesson** (Pre-A1 greetings) that runs entirely in the browser.
+Anyone can play a **demo lesson** (Pre-A1 greetings) from the welcome screen (`/try`, FR-03). It runs entirely in the browser.
 
 ### Authentication
 
@@ -86,11 +86,12 @@ In Development, each service serves Swagger UI at `/swagger`.
 
 ## Status against the MVP plan
 
-Done: monorepo, CI, PWA shell, lesson player with all 7 exercise types, course map, Identity service (sign-up and sign-in, Google/Apple exchange, age and guardian consent, verification, reset, onboarding, deletion with erasure), Learning & Content service with the CMS workflow API, Progress service (XP, daily goal, streaks with freezes, skill radar, SRS), gateway, local infrastructure.
+Done: monorepo, CI, PWA shell with sign-up, sign-in, onboarding, email-link pages, profile/dashboard and account deletion; lesson player with all 7 exercise types, whose completions are queued offline in IndexedDB and synced on reconnect; course map; Identity service (sign-up and sign-in, Google/Apple exchange, age and guardian consent, verification, reset, onboarding, deletion with erasure), Learning & Content service with the CMS workflow API, Progress service (XP, daily goal, streaks with freezes, skill radar, SRS), gateway, local infrastructure.
 
 Next, in rough order:
-- Web sign-in, sign-up, onboarding and email-link screens; Google/Apple SDK buttons; SendGrid email sender; production signing certificates from the vault; token pruning; admin role management (FR-91) with audit log (FR-92)
-- Offline attempt queue in the web app (IndexedDB/Dexie) and wiring the player to `completeLesson` (NFR-05, FR-27 resume)
+- Google/Apple SDK buttons on the web; SendGrid email sender; production signing certificates from the vault; token pruning; admin role management (FR-91) with audit log (FR-92)
+- Resume a lesson mid-way across devices (FR-27); precache the current unit's lessons for offline use (NFR-05)
+- Review screen: needs a vocabulary lookup API in Learning so due cards can show the word, audio and example (FR-31, FR-32)
 - Placement test (FR-10/11) and unit checkpoints (FR-12) driving unlocks
 - Admin CMS app with live preview, media upload/CDN, TTS, bulk import (FR-80/81/83/85), audit log (FR-92), support tools (FR-90)
 - Review and Profile screens backed by the Progress API; badges (FR-51)
