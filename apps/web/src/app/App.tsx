@@ -13,6 +13,7 @@ const TryLessonPage = lazy(() => import("../features/lesson/LessonPage").then((m
 const ReviewPage = lazy(() => import("../features/review/ReviewPage"));
 const ProfilePage = lazy(() => import("../features/profile/ProfilePage"));
 const OnboardingPage = lazy(() => import("../features/onboarding/OnboardingPage"));
+const PlacementPage = lazy(() => import("../features/placement/PlacementPage"));
 const authPage = (name: keyof typeof import("../features/auth/AuthPages")) =>
   lazy(() => import("../features/auth/AuthPages").then((m) => ({ default: m[name] })));
 const WelcomePage = authPage("WelcomePage");
@@ -89,8 +90,9 @@ const router = createBrowserRouter([
               { path: "profile", element: lazyPage(<ProfilePage />) },
             ],
           },
-          // The lesson player is full-screen: one task per screen, no tab bar (BRD §9).
+          // The lesson player and placement test are full-screen: one task per screen, no tab bar (BRD §9).
           { path: "lesson/:lessonId", element: lazyPage(<LessonPage />) },
+          { path: "placement", element: lazyPage(<PlacementPage />) },
         ],
       },
     ],

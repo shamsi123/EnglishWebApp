@@ -1,5 +1,5 @@
 import type { Answer } from "../content/scoring.js";
-import type { CefrLevel, Lesson, Skill } from "../content/schema.js";
+import type { CefrLevel, ExerciseDisplay, Lesson, Skill, VocabularyEntry } from "../content/schema.js";
 
 /**
  * Versioned REST client (BRD §8.3 decision 6) shared by the PWA and the Capacitor apps.
@@ -12,6 +12,8 @@ export type LessonState = "locked" | "unlocked" | "inProgress" | "completed";
 
 export interface CourseMapDto {
   courseId: string;
+  /** Null until the learner takes or skips the placement test (FR-10, FR-11). */
+  placement: { startLevel: CefrLevel; skipped: boolean } | null;
   levels: Array<{
     level: CefrLevel;
     title: string;
@@ -19,7 +21,7 @@ export interface CourseMapDto {
       id: string;
       title: string;
       state: LessonState;
-      lessons: Array<{ id: string; title: string; state: LessonState }>;
+      lessons: Array<{ id: string; title: string; kind: "lesson" | "checkpoint"; state: LessonState }>;
     }>;
   }>;
 }
@@ -45,6 +47,17 @@ export interface CompletionResultDto {
   completionId: string;
   correctFirstTry: number;
   totalExercises: number;
+  /** Checkpoints only: whether the 70% pass mark was reached (FR-12). */
+  checkpointPassed: boolean | null;
+}
+
+export interface PlacementStepDto {
+  sessionId: string;
+  answered: number;
+  maxQuestions: number;
+  /** The next question, or null when the test is over. */
+  question: { itemId: string; exercise: ExerciseDisplay } | null;
+  result: { startLevel: CefrLevel; highestPassedLevel: CefrLevel | null } | null;
 }
 
 export interface DueCardDto {
@@ -139,6 +152,25 @@ export class ApiClient {
   /** Server re-grades the attempts and awards XP asynchronously (BRD §8.3 decisions 3–4). */
   completeLesson(lessonId: string, body: CompleteLessonRequest): Promise<CompletionResultDto> {
     return this.request("POST", `/learning/lessons/${encodeURIComponent(lessonId)}/completions`, body);
+  }
+
+  /** Words for review cards (FR-32). */
+  getVocabulary(ids: string[]): Promise<VocabularyEntry[]> {
+    return this.request("GET", `/learning/vocabulary?ids=${ids.map(encodeURIComponent).join(",")}`);
+  }
+
+  /** Starts or resumes the adaptive placement test (FR-10). */
+  startPlacement(): Promise<PlacementStepDto> {
+    return this.request("POST", "/learning/placement");
+  }
+
+  answerPlacement(sessionId: string, itemId: string, answer: Answer): Promise<PlacementStepDto> {
+    return this.request("POST", `/learning/placement/${encodeURIComponent(sessionId)}/answers`, { itemId, answer });
+  }
+
+  /** FR-11: start from Pre-A1 without the test. */
+  skipPlacement(): Promise<void> {
+    return this.request("POST", "/learning/placement/skip");
   }
 
   /** @param today learner's local day, YYYY-MM-DD */

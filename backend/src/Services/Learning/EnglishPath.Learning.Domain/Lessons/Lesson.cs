@@ -16,6 +16,13 @@ public enum DraftStatus
     Published = 2,
 }
 
+/// <summary>A regular lesson, or the end-of-unit checkpoint quiz that unlocks the next unit (FR-12).</summary>
+public enum LessonKind
+{
+    Lesson = 0,
+    Checkpoint = 1,
+}
+
 public sealed record LessonPublishedDomainEvent(Guid LessonId, Guid UnitId, int Version, DateTimeOffset PublishedAt) : IDomainEvent;
 
 /// <summary>
@@ -35,6 +42,8 @@ public sealed class Lesson : AggregateRoot<Guid>
 
     public int Order { get; private set; }
 
+    public LessonKind Kind { get; private set; }
+
     public string Title { get; private set; } = string.Empty;
 
     public string DraftContent { get; private set; } = string.Empty;
@@ -49,7 +58,7 @@ public sealed class Lesson : AggregateRoot<Guid>
 
     public LessonVersion? Live => PublishedVersion is { } v ? _versions.Single(x => x.Version == v) : null;
 
-    public static Lesson Create(Guid unitId, int order, string title, string draftContent, DateTimeOffset now)
+    public static Lesson Create(Guid unitId, int order, string title, string draftContent, DateTimeOffset now, LessonKind kind = LessonKind.Lesson)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(title);
         ArgumentOutOfRangeException.ThrowIfNegative(order);
@@ -58,6 +67,7 @@ public sealed class Lesson : AggregateRoot<Guid>
             Id = Guid.NewGuid(),
             UnitId = unitId,
             Order = order,
+            Kind = kind,
             Title = title.Trim(),
             DraftContent = draftContent,
             Status = DraftStatus.Draft,

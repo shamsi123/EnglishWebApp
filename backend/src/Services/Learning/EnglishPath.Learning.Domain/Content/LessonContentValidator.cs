@@ -55,7 +55,7 @@ public static class LessonContentValidator
         return problems;
     }
 
-    private static IEnumerable<string> ValidateExercise(Exercise exercise)
+    public static IEnumerable<string> ValidateExercise(Exercise exercise)
     {
         if (exercise.Skills.Count == 0)
         {

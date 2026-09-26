@@ -2,6 +2,9 @@ using System.Text.Json;
 using EnglishPath.BuildingBlocks.Web;
 using EnglishPath.Learning.Application.Authoring;
 using EnglishPath.Learning.Application.Learner;
+using EnglishPath.Learning.Application.Placement;
+using EnglishPath.Learning.Domain.Lessons;
+using EnglishPath.Learning.Domain.Units;
 using MediatR;
 
 namespace EnglishPath.Learning.Api;
@@ -16,7 +19,11 @@ public static class Policies
 
 public sealed record CompleteLessonRequest(Guid CompletionId, int LessonVersion, DateOnly LearnerLocalDay, IReadOnlyList<AttemptInput> Attempts);
 
-public sealed record LessonDraftRequest(Guid UnitId, int Order, string Title, JsonElement Content);
+public sealed record LessonDraftRequest(Guid UnitId, int Order, string Title, JsonElement Content, LessonKind Kind = LessonKind.Lesson);
+
+public sealed record PlacementAnswerRequest(Guid ItemId, JsonElement Answer);
+
+public sealed record PlacementItemRequest(CefrLevel Level, JsonElement Exercise);
 
 public sealed record UpdateLessonDraftRequest(string Title, JsonElement Content);
 
@@ -34,6 +41,20 @@ public static class Endpoints
         learner.MapGet("/lessons/{lessonId:guid}", async (Guid lessonId, ISender sender, CancellationToken ct) =>
             (await sender.Send(new GetLessonQuery(lessonId), ct)).ToHttpResult());
 
+        // Comma-separated ids, e.g. ?ids=v-hello,v-goodbye (FR-32).
+        learner.MapGet("/vocabulary", async (string ids, ISender sender, CancellationToken ct) =>
+            (await sender.Send(new GetVocabularyQuery(ids.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)), ct)).ToHttpResult());
+
+        // Placement test (FR-10, FR-11).
+        learner.MapPost("/placement", async (ISender sender, CancellationToken ct) =>
+            (await sender.Send(new StartPlacementCommand(), ct)).ToHttpResult());
+
+        learner.MapPost("/placement/{sessionId:guid}/answers", async (Guid sessionId, PlacementAnswerRequest body, ISender sender, CancellationToken ct) =>
+            (await sender.Send(new AnswerPlacementCommand(sessionId, body.ItemId, body.Answer), ct)).ToHttpResult());
+
+        learner.MapPost("/placement/skip", async (ISender sender, CancellationToken ct) =>
+            (await sender.Send(new SkipPlacementCommand(), ct)).ToHttpResult());
+
         learner.MapPost("/lessons/{lessonId:guid}/completions", async (Guid lessonId, CompleteLessonRequest body, ISender sender, CancellationToken ct) =>
             (await sender.Send(
                 new CompleteLessonCommand(lessonId, body.CompletionId, body.LessonVersion, body.LearnerLocalDay, body.Attempts),
@@ -50,7 +71,7 @@ public static class Endpoints
             .RequireAuthorization(Policies.Author);
 
         admin.MapPost("/lessons", async (LessonDraftRequest body, ISender sender, CancellationToken ct) =>
-            (await sender.Send(new CreateLessonCommand(body.UnitId, body.Order, body.Title, body.Content), ct)).ToHttpResult())
+            (await sender.Send(new CreateLessonCommand(body.UnitId, body.Order, body.Title, body.Content, body.Kind), ct)).ToHttpResult())
             .RequireAuthorization(Policies.Author);
 
         admin.MapGet("/lessons/{lessonId:guid}", async (Guid lessonId, ISender sender, CancellationToken ct) =>
@@ -62,6 +83,17 @@ public static class Endpoints
 
         admin.MapPost("/lessons/{lessonId:guid}/submit", async (Guid lessonId, ISender sender, CancellationToken ct) =>
             (await sender.Send(new SubmitLessonForReviewCommand(lessonId), ct)).ToHttpResult())
+            .RequireAuthorization(Policies.Author);
+
+        admin.MapGet("/placement-items", async (CefrLevel? level, ISender sender, CancellationToken ct) =>
+            (await sender.Send(new ListPlacementItemsQuery(level), ct)).ToHttpResult());
+
+        admin.MapPost("/placement-items", async (PlacementItemRequest body, ISender sender, CancellationToken ct) =>
+            (await sender.Send(new CreatePlacementItemCommand(body.Level, body.Exercise), ct)).ToHttpResult())
+            .RequireAuthorization(Policies.Author);
+
+        admin.MapDelete("/placement-items/{itemId:guid}", async (Guid itemId, ISender sender, CancellationToken ct) =>
+            (await sender.Send(new RetirePlacementItemCommand(itemId), ct)).ToHttpResult())
             .RequireAuthorization(Policies.Author);
 
         var review = admin.MapGroup("/lessons/{lessonId:guid}").RequireAuthorization(Policies.Reviewer).WithTags("Review");

@@ -110,6 +110,14 @@ export const Exercise = z
 export type Exercise = z.infer<typeof Exercise>;
 export type ExerciseType = Exercise["type"];
 
+type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never;
+
+/**
+ * What a client needs to render an exercise. Placement questions arrive in this shape because
+ * they are scored on the server, so the answer key and explanation are withheld (FR-10).
+ */
+export type ExerciseDisplay = DistributiveOmit<Exercise, "correctIndex" | "acceptedAnswers" | "explanation">;
+
 export const VocabularyEntry = z.object({
   id: z.string().min(1),
   word: z.string().min(1),
@@ -128,6 +136,8 @@ export const Lesson = z
     id: z.string().min(1),
     unitId: z.string().min(1),
     version: z.number().int().positive(),
+    /** Checkpoint quizzes unlock the next unit at 70% (FR-12). */
+    kind: z.enum(["lesson", "checkpoint"]).default("lesson"),
     title: z.string().min(1),
     objective: z.string().min(1),
     grammarPoint: z.string().optional(),

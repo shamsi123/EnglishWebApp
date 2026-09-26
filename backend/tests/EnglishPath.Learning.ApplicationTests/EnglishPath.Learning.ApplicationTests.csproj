@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Services\Learning\EnglishPath.Learning.Infrastructure\EnglishPath.Learning.Infrastructure.csproj" />
+  </ItemGroup>
+</Project>

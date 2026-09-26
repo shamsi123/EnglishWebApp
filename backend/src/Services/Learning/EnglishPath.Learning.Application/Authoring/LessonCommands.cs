@@ -3,7 +3,9 @@ using EnglishPath.BuildingBlocks.Application;
 using EnglishPath.BuildingBlocks.Domain;
 using EnglishPath.Contracts;
 using EnglishPath.Learning.Application.Abstractions;
+using EnglishPath.Learning.Domain.Content;
 using EnglishPath.Learning.Domain.Lessons;
+using EnglishPath.Learning.Domain.Vocabulary;
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -13,7 +15,7 @@ namespace EnglishPath.Learning.Application.Authoring;
 // CMS authoring workflow: Draft → Review → Published, with versioning and rollback (FR-80, FR-82).
 // Role checks (Content Author / Reviewer, FR-91) are applied at the endpoint.
 
-public sealed record CreateLessonCommand(Guid UnitId, int Order, string Title, JsonElement Content) : IRequest<Result<Guid>>;
+public sealed record CreateLessonCommand(Guid UnitId, int Order, string Title, JsonElement Content, LessonKind Kind = LessonKind.Lesson) : IRequest<Result<Guid>>;
 
 public sealed record UpdateLessonDraftCommand(Guid LessonId, string Title, JsonElement Content) : IRequest<Result>;
 
@@ -32,6 +34,7 @@ internal sealed class CreateLessonValidator : AbstractValidator<CreateLessonComm
         RuleFor(c => c.UnitId).NotEmpty();
         RuleFor(c => c.Order).GreaterThanOrEqualTo(0);
         RuleFor(c => c.Title).NotEmpty().MaximumLength(200);
+        RuleFor(c => c.Kind).IsInEnum();
         RuleFor(c => c.Content.ValueKind).Equal(JsonValueKind.Object).WithMessage("Content must be a JSON object.");
     }
 }
@@ -64,7 +67,7 @@ internal sealed class LessonAuthoringHandlers(
             return Error.NotFound("unit.not_found", "Unit not found.");
         }
 
-        var lesson = Lesson.Create(request.UnitId, request.Order, request.Title, request.Content.GetRawText(), clock.UtcNow);
+        var lesson = Lesson.Create(request.UnitId, request.Order, request.Title, request.Content.GetRawText(), clock.UtcNow, request.Kind);
         db.Lessons.Add(lesson);
         await db.SaveChangesAsync(cancellationToken);
         return lesson.Id;
@@ -101,6 +104,7 @@ internal sealed class LessonAuthoringHandlers(
 
         foreach (var published in lesson.DomainEvents.OfType<LessonPublishedDomainEvent>())
         {
+            await SyncVocabularyAsync(lesson, cancellationToken);
             await publisher.PublishAsync(
                 new LessonPublished(published.LessonId, published.UnitId, published.Version, published.PublishedAt),
                 cancellationToken);
@@ -109,5 +113,24 @@ internal sealed class LessonAuthoringHandlers(
         lesson.ClearDomainEvents();
         await db.SaveChangesAsync(cancellationToken);
         return result;
+    }
+
+    /// <summary>Keeps the vocabulary read model in step with the live lesson (FR-30, FR-32).</summary>
+    private async Task SyncVocabularyAsync(Lesson lesson, CancellationToken cancellationToken)
+    {
+        var entries = LessonContent.Parse(lesson.Live!.Content).Vocabulary;
+        var ids = entries.Select(e => e.Id).ToList();
+        var existing = await db.Vocabulary.Where(v => ids.Contains(v.Id)).ToDictionaryAsync(v => v.Id, cancellationToken);
+        foreach (var entry in entries)
+        {
+            if (existing.TryGetValue(entry.Id, out var item))
+            {
+                item.Update(entry, lesson.Id, clock.UtcNow);
+            }
+            else
+            {
+                db.Vocabulary.Add(VocabularyItem.From(entry, lesson.Id, clock.UtcNow));
+            }
+        }
     }
 }

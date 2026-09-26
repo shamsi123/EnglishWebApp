@@ -57,6 +57,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EnglishPath.Identity.Api", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EnglishPath.Identity.Tests", "tests\EnglishPath.Identity.Tests\EnglishPath.Identity.Tests.csproj", "{3BD0B347-28BE-4048-889C-42EDB8E25477}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EnglishPath.Learning.ApplicationTests", "tests\EnglishPath.Learning.ApplicationTests\EnglishPath.Learning.ApplicationTests.csproj", "{BFC64E40-BB91-4545-A8C1-5120C02D69E1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -142,6 +144,10 @@ Global
 		{3BD0B347-28BE-4048-889C-42EDB8E25477}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3BD0B347-28BE-4048-889C-42EDB8E25477}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3BD0B347-28BE-4048-889C-42EDB8E25477}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BFC64E40-BB91-4545-A8C1-5120C02D69E1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BFC64E40-BB91-4545-A8C1-5120C02D69E1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BFC64E40-BB91-4545-A8C1-5120C02D69E1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BFC64E40-BB91-4545-A8C1-5120C02D69E1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{996DB33F-3DFF-4B89-9738-A58AF99BD4B6} = {ACC76B9B-3814-4231-B235-60EAD8F627F1}
@@ -169,5 +175,6 @@ Global
 		{88D7276C-0925-4BE7-9404-01DB3B354FF9} = {EA83CA05-69D7-441A-8734-3FC6F7F2DDCE}
 		{7A74F49D-E978-4862-8E7B-C8F13CA61615} = {EA83CA05-69D7-441A-8734-3FC6F7F2DDCE}
 		{3BD0B347-28BE-4048-889C-42EDB8E25477} = {85E31FC0-391A-4932-93D8-9563ABC6DA7D}
+		{BFC64E40-BB91-4545-A8C1-5120C02D69E1} = {85E31FC0-391A-4932-93D8-9563ABC6DA7D}
 	EndGlobalSection
 EndGlobal

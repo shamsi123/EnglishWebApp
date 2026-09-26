@@ -42,6 +42,16 @@ export function LearnPage() {
         </div>
       )}
 
+      {courseMap.data && courseMap.data.placement === null && (
+        <Link to="/placement" className="mt-4 flex items-center gap-3 rounded-2xl bg-brand-50 p-4 dark:bg-slate-900">
+          <span aria-hidden className="text-3xl">🎯</span>
+          <span>
+            <strong className="block">{t("placement.title")}</strong>
+            {t("learn.placementPrompt")}
+          </span>
+        </Link>
+      )}
+
       {courseMap.data?.levels.map((level) => (
         <div key={level.level} className="mt-6">
           <h2 className="text-lg font-semibold">{level.title}</h2>
@@ -56,15 +66,15 @@ export function LearnPage() {
                         className={`btn h-14 w-14 rounded-full p-0 ${stateStyles.locked}`}
                         aria-label={`${lesson.title} (locked)`}
                       >
-                        🔒
+                        {lesson.kind === "checkpoint" ? "🏆" : "🔒"}
                       </span>
                     ) : (
                       <Link
                         to={`/lesson/${lesson.id}`}
                         className={`btn h-14 w-14 rounded-full p-0 ${stateStyles[lesson.state]}`}
-                        aria-label={`${lesson.title} (${lesson.state})`}
+                        aria-label={`${lesson.kind === "checkpoint" ? `${t("learn.checkpoint")}: ` : ""}${lesson.title} (${lesson.state})`}
                       >
-                        {lesson.state === "completed" ? "★" : "▶"}
+                        {lesson.kind === "checkpoint" ? "🏆" : lesson.state === "completed" ? "★" : "▶"}
                       </Link>
                     )}
                   </li>

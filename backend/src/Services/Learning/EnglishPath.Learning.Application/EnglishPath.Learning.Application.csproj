@@ -8,4 +8,7 @@
     <ProjectReference Include="..\..\..\BuildingBlocks\EnglishPath.Contracts\EnglishPath.Contracts.csproj" />
     <ProjectReference Include="..\EnglishPath.Learning.Domain\EnglishPath.Learning.Domain.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="EnglishPath.Learning.ApplicationTests" />
+  </ItemGroup>
 </Project>

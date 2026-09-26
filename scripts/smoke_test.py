@@ -120,6 +120,16 @@ def main():
     check("submitted", http("POST", f"/api/v1/learning/admin/lessons/{lesson}/submit", admin_token)[0] == 204)
     check("published", http("POST", f"/api/v1/learning/admin/lessons/{lesson}/publish", admin_token)[0] == 204)
 
+    status, words = http("GET", "/api/v1/learning/vocabulary?ids=v-hello,unknown", learner)
+    check("vocabulary lookup (FR-32)", status == 200 and [w["word"] for w in words] == ["hello"], words)
+
+    # Placement (FR-11): skipping starts at Pre-A1 and is reflected on the course map.
+    status, course = http("GET", "/api/v1/learning/course-map", learner)
+    check("course map has no placement yet", status == 200 and course["placement"] is None, course.get("placement"))
+    check("skip placement", http("POST", "/api/v1/learning/placement/skip", learner)[0] == 204)
+    status, course = http("GET", "/api/v1/learning/course-map", learner)
+    check("placement recorded", course["placement"] == {"startLevel": "PreA1", "skipped": True}, course["placement"])
+
     # Learner completes it; Progress awards XP asynchronously.
     status, bundle = http("GET", f"/api/v1/learning/lessons/{lesson}", learner)
     check("lesson bundle", status == 200 and len(bundle["exercises"]) == 8, bundle)

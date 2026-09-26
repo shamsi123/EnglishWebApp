@@ -33,3 +33,6 @@ public sealed record UserDeleted(Guid UserId, DateTimeOffset DeletedAt);
 
 /// <summary>Published by Identity when the learner finishes or changes onboarding (FR-02).</summary>
 public sealed record OnboardingCompleted(Guid UserId, string Goal, int DailyMinutes, string NativeLanguage);
+
+/// <summary>Published by Learning when a learner finishes (or skips) the placement test (FR-10, FR-11).</summary>
+public sealed record PlacementCompleted(Guid UserId, string StartLevel, string? HighestPassedLevel, bool Skipped, DateTimeOffset CompletedAt);

@@ -44,7 +44,8 @@ export default function OnboardingPage() {
     try {
       await api.saveOnboarding({ goal, dailyMinutes: daily, nativeLanguage });
       await queryClient.invalidateQueries({ queryKey: ["me"] });
-      navigate("/learn", { replace: true });
+      // Primary journey: onboarding → placement test → first lesson (BRD §9).
+      navigate("/placement", { replace: true });
     } catch (err) {
       setError(errorMessage(err));
       setBusy(false);

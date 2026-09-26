@@ -26,7 +26,8 @@ public sealed record CompleteLessonCommand(
     DateOnly LearnerLocalDay,
     IReadOnlyList<AttemptInput> Attempts) : IRequest<Result<CompletionResultDto>>;
 
-public sealed record CompletionResultDto(Guid CompletionId, int CorrectFirstTry, int TotalExercises);
+/// <param name="CheckpointPassed">For checkpoint quizzes, whether the 70% pass mark was reached (FR-12); otherwise null.</param>
+public sealed record CompletionResultDto(Guid CompletionId, int CorrectFirstTry, int TotalExercises, bool? CheckpointPassed);
 
 internal sealed class CompleteLessonValidator : AbstractValidator<CompleteLessonCommand>
 {
@@ -68,7 +69,7 @@ internal sealed class CompleteLessonHandler(
         {
             // Idempotent retry of an offline sync.
             return existing.UserId == user.UserId && existing.LessonId == request.LessonId
-                ? new CompletionResultDto(existing.Id, existing.CorrectFirstTry, existing.TotalExercises)
+                ? await ResultAsync(existing, cancellationToken)
                 : Error.Conflict("completion.id_conflict", "Completion id already used.");
         }
 
@@ -117,6 +118,16 @@ internal sealed class CompleteLessonHandler(
             cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
 
-        return new CompletionResultDto(completion.Id, completion.CorrectFirstTry, completion.TotalExercises);
+        return await ResultAsync(completion, cancellationToken);
+    }
+
+    private async Task<CompletionResultDto> ResultAsync(LessonCompletion completion, CancellationToken cancellationToken)
+    {
+        var kind = await db.Lessons.Where(l => l.Id == completion.LessonId).Select(l => l.Kind).SingleAsync(cancellationToken);
+        return new CompletionResultDto(
+            completion.Id,
+            completion.CorrectFirstTry,
+            completion.TotalExercises,
+            kind == LessonKind.Checkpoint ? Checkpoints.Passes(completion.CorrectFirstTry, completion.TotalExercises) : null);
     }
 }

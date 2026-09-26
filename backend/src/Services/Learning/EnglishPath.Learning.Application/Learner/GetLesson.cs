@@ -19,7 +19,7 @@ internal sealed class GetLessonHandler(ILearningDbContext db) : IRequestHandler<
     {
         var live = await db.Lessons.AsNoTracking()
             .Where(l => l.Id == request.LessonId && l.PublishedVersion != null)
-            .SelectMany(l => l.Versions.Where(v => v.Version == l.PublishedVersion), (l, v) => new { l.UnitId, Version = v })
+            .SelectMany(l => l.Versions.Where(v => v.Version == l.PublishedVersion), (l, v) => new { l.UnitId, l.Kind, Version = v })
             .SingleOrDefaultAsync(cancellationToken);
 
         if (live is null)
@@ -32,6 +32,7 @@ internal sealed class GetLessonHandler(ILearningDbContext db) : IRequestHandler<
         bundle["unitId"] = live.UnitId.ToString();
         bundle["version"] = live.Version.Version;
         bundle["title"] = live.Version.Title;
+        bundle["kind"] = live.Kind == LessonKind.Checkpoint ? "checkpoint" : "lesson";
         return bundle;
     }
 }

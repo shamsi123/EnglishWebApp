@@ -1,9 +1,9 @@
 import { useMemo, useState } from "react";
-import type { Answer, Exercise, MediaRef } from "@englishpath/core";
+import type { Answer, ExerciseDisplay, MediaRef } from "@englishpath/core";
 import { t } from "../../shared/i18n";
 
 interface Props {
-  exercise: Exercise;
+  exercise: ExerciseDisplay;
   disabled: boolean;
   onAnswerChange: (answer: Answer | null) => void;
 }

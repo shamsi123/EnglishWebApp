@@ -1,7 +1,7 @@
 import { useEffect, useReducer, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import type { Answer, AttemptDto, Lesson } from "@englishpath/core";
+import { passesCheckpoint, type Answer, type AttemptDto, type Lesson } from "@englishpath/core";
 import { api } from "../../shared/api";
 import { localDay } from "../../shared/dates";
 import { t } from "../../shared/i18n";
@@ -142,6 +142,11 @@ export function LessonPlayer({ lesson, exitTo, onComplete, summaryNote }: Lesson
                 <dd className="text-2xl font-bold">{summary(lesson, session).accuracy}%</dd>
               </div>
             </dl>
+            {lesson.kind === "checkpoint" && (
+              <p role="status" className="mt-6 rounded-2xl bg-slate-50 p-4 font-medium dark:bg-slate-900">
+                {passesCheckpoint(session.firstTryCorrect, lesson.exercises.length) ? t("lesson.checkpointPassed") : t("lesson.checkpointFailed")}
+              </p>
+            )}
             {summaryNote && <p className="mt-6 rounded-2xl bg-slate-50 p-4 dark:bg-slate-900">{summaryNote}</p>}
           </div>
         )}
