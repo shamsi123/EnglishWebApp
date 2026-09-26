@@ -60,7 +60,8 @@ interface State {
   updateSettings(childId: string, patch: Partial<ChildSettings>): void;
 
   setSession(session: LessonSession | null): void;
-  recordAnswer(activityId: string, itemId: string, correct: boolean): void;
+  /** Queues the attempt for sync; `schedule` also moves the item between Leitner boxes. */
+  recordAnswer(activityId: string, itemId: string, correct: boolean, schedule?: boolean): void;
   completeCheck(nodeId: string, results: ItemResult[], traceAccuracy: number | null): MasteryResult;
   addMinute(): void;
   waterGarden(): void;
@@ -135,14 +136,14 @@ export const useStore = create<State>()(
           }),
         ),
 
-      recordAnswer: (activityId, itemId, correct) =>
+      recordAnswer: (activityId, itemId, correct, schedule = false) =>
         set((s) =>
           patchChild(s, (d) => {
             const now = new Date();
             const lessonId = d.session?.nodeId ?? 'review';
             return {
               ...d,
-              items: { ...d.items, [itemId]: review(d.items[itemId], correct, now) },
+              items: schedule ? { ...d.items, [itemId]: review(d.items[itemId], correct, now) } : d.items,
               streak: touchStreak(d.streak, now),
               queue: enqueue(d.queue, {
                 id: newId(), childId: s.activeChildId!, activityId, lessonId, itemId, isCorrect: correct, createdAtUtc: now.toISOString(),
@@ -161,12 +162,19 @@ export const useStore = create<State>()(
             const prev = d.lessons[nodeId] ?? { status: 'in_progress' as const, bestScore: 0, stars: 0, attempts: 0 };
             const wasMastered = prev.status === 'mastered';
             const mastered = wasMastered || result.mastered;
+            // Leitner: one step per item per quiz — up only if every answer for it was correct.
+            const items = { ...d.items };
+            const now = new Date();
+            for (const id of new Set(results.map((r) => r.itemId))) {
+              items[id] = review(items[id], results.filter((r) => r.itemId === id).every((r) => r.correct), now);
+            }
             let stickers = d.stickers;
             let trophies = d.trophies;
             if (result.mastered && node.kind === 'checkpoint' && !stickers.includes(node.unit.id)) stickers = [...stickers, node.unit.id];
             if (result.mastered && node.kind === 'level_test' && !trophies.includes(node.levelId)) trophies = [...trophies, node.levelId];
             return {
               ...d,
+              items,
               stickers,
               trophies,
               lessons: {

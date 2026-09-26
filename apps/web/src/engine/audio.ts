@@ -7,11 +7,17 @@
 export type Sfx = 'correct' | 'tryAgain' | 'pop' | 'celebrate' | 'tap';
 
 let muted = false;
+let sfxMuted = false;
 let ctx: AudioContext | null = null;
 
 export function setMuted(value: boolean) {
   muted = value;
   if (muted && typeof speechSynthesis !== 'undefined') speechSynthesis.cancel();
+}
+
+/** Sound effects have their own switch (FR-34: sound vs. voice & music). */
+export function setSfxMuted(value: boolean) {
+  sfxMuted = value;
 }
 
 export function isMuted() {
@@ -27,9 +33,20 @@ function audioContext(): AudioContext | null {
 
 const LANG_TAGS: Record<string, string> = { ar: 'ar-SA', en: 'en-US', hi: 'hi-IN' };
 
-export function speak(text: string, lang: 'ar' | 'en' | 'hi' = 'en') {
+export type SpeechPart = { text: string; lang: 'ar' | 'en' | 'hi' };
+
+export function speak(text: string, lang: SpeechPart['lang'] = 'en') {
+  speakAll([{ text, lang }]);
+}
+
+/** Speaks parts in order (e.g. an English instruction followed by an Arabic letter name). */
+export function speakAll(parts: SpeechPart[]) {
   if (muted || typeof speechSynthesis === 'undefined') return;
   speechSynthesis.cancel();
+  parts.forEach(({ text, lang }) => speechSynthesis.speak(utterance(text, lang)));
+}
+
+function utterance(text: string, lang: SpeechPart['lang']): SpeechSynthesisUtterance {
   const u = new SpeechSynthesisUtterance(text);
   const tag = LANG_TAGS[lang] ?? 'en-US';
   u.lang = tag;
@@ -37,7 +54,7 @@ export function speak(text: string, lang: 'ar' | 'en' | 'hi' = 'en') {
   u.pitch = 1.1;
   const voice = speechSynthesis.getVoices().find((v) => v.lang.toLowerCase().startsWith(tag.slice(0, 2)));
   if (voice) u.voice = voice;
-  speechSynthesis.speak(u);
+  return u;
 }
 
 const TONES: Record<Sfx, Array<[freq: number, start: number, dur: number]>> = {
@@ -49,7 +66,7 @@ const TONES: Record<Sfx, Array<[freq: number, start: number, dur: number]>> = {
 };
 
 export function sfx(name: Sfx) {
-  if (muted) return;
+  if (sfxMuted) return;
   const ac = audioContext();
   if (!ac) return;
   for (const [freq, start, dur] of TONES[name]) {

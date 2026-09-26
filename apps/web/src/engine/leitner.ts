@@ -8,6 +8,8 @@ export interface ItemMastery {
   correctCount: number;
   wrongCount: number;
   nextReviewAt: string;
+  /** Last time the item was scheduled; an item moves up at most once per UTC day. */
+  lastReviewedAt?: string;
 }
 
 export function nextBox(box: number | null, correct: boolean): number {
@@ -20,14 +22,20 @@ export function nextReviewDate(box: number, now: Date): Date {
   return new Date(now.getTime() + days * DAY_MS);
 }
 
+const utcDay = (iso: string) => iso.slice(0, 10);
+
 export function review(entry: ItemMastery | undefined, correct: boolean, now: Date): ItemMastery {
-  const box = nextBox(entry?.box ?? null, correct);
-  return {
-    box,
+  const counts = {
     correctCount: (entry?.correctCount ?? 0) + (correct ? 1 : 0),
     wrongCount: (entry?.wrongCount ?? 0) + (correct ? 0 : 1),
-    nextReviewAt: nextReviewDate(box, now).toISOString(),
+    lastReviewedAt: now.toISOString(),
   };
+  // Seeing an item again the same day (several lessons, a checkpoint) must not skip boxes.
+  if (correct && entry?.lastReviewedAt && utcDay(entry.lastReviewedAt) === utcDay(now.toISOString())) {
+    return { ...counts, box: entry.box, nextReviewAt: new Date(entry.nextReviewAt).toISOString() };
+  }
+  const box = nextBox(entry?.box ?? null, correct);
+  return { ...counts, box, nextReviewAt: nextReviewDate(box, now).toISOString() };
 }
 
 export function dueItems(items: Record<string, ItemMastery>, now: Date): string[] {

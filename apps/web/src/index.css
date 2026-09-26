@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+html, body, #root { height: 100%; }
+body {
+  @apply bg-grape-100 font-ui text-ink antialiased;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+button { touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+.ar { font-family: 'Baloo Bhaijaan 2', 'Noto Naskh Arabic', serif; font-feature-settings: 'calt', 'liga'; }
+.high-contrast { filter: contrast(1.25) saturate(1.1); }
+
+@layer utilities {
+  .pt-safe { padding-top: max(var(--safe-top), 0.75rem); }
+  .pb-safe { padding-bottom: max(var(--safe-bottom), 1rem); }
+}
+
+@keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+@keyframes wiggle { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-6deg); } 75% { transform: rotate(6deg); } }
+@keyframes shake { 0%, 100% { transform: translateX(0); } 20%, 60% { transform: translateX(-8px); } 40%, 80% { transform: translateX(8px); } }
+@keyframes popIn { 0% { transform: scale(0.4); opacity: 0; } 70% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(1); } }
+@keyframes floatUp { from { transform: translateY(0); } to { transform: translateY(-120%); } }
+@keyframes confetti { 0% { transform: translateY(-10vh) rotate(0); opacity: 1; } 100% { transform: translateY(110vh) rotate(720deg); opacity: 0.8; } }
+@keyframes glow { 0%, 100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.7); } 50% { box-shadow: 0 0 0 14px rgba(251, 191, 36, 0); } }
+@keyframes grow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+
+.animate-bob { animation: bob 2.4s ease-in-out infinite; }
+.animate-wiggle { animation: wiggle 0.5s ease-in-out; }
+.animate-shake { animation: shake 0.4s ease-in-out; }
+.animate-pop-in { animation: popIn 0.45s ease-out both; }
+.animate-glow { animation: glow 1.8s ease-in-out infinite; }
+.animate-grow { animation: grow 0.8s ease-out both; transform-origin: bottom; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+}
+
+@keyframes balloonUp { 0% { transform: translateY(0); opacity: 0; } 8% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateY(-280px); opacity: 0; } }
+[dir='rtl'] { --dir: -1; }

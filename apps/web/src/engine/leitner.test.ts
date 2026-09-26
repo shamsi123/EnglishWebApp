@@ -7,7 +7,10 @@ describe('Leitner scheduler (shared fixtures with KidsLang.Domain)', () => {
   });
 
   it.each(fixtures.cases)('$name', (c) => {
-    const entry = c.box === null ? undefined : { box: c.box, correctCount: 0, wrongCount: 0, nextReviewAt: c.now };
+    const entry =
+      c.box === null
+        ? undefined
+        : { box: c.box, correctCount: 0, wrongCount: 0, nextReviewAt: c.previousNextReviewAt ?? c.now, lastReviewedAt: c.lastReviewedAt };
     const out = review(entry, c.correct, new Date(c.now));
     expect(out.box).toBe(c.expected.box);
     expect(out.nextReviewAt).toBe(new Date(c.expected.nextReviewAt).toISOString());
