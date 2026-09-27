@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import type { Skill } from "@englishpath/core";
 import { api } from "../../shared/api";
 import { auth } from "../../shared/auth";
@@ -34,6 +34,16 @@ export default function ProfilePage() {
     <section className="mx-auto max-w-2xl p-4">
       <h1 className="text-2xl font-bold">{t("profile.title")}</h1>
       {me.data && <p className="text-slate-600 dark:text-slate-400">{me.data.email}</p>}
+
+      {me.data && me.data.roles.length > 0 && (
+        <Link to="/admin/outline" className="mt-4 flex items-center gap-3 rounded-2xl bg-slate-100 p-4 dark:bg-slate-900">
+          <span aria-hidden className="text-2xl">🛠️</span>
+          <span>
+            <strong className="block">Content management</strong>
+            <span className="text-sm text-slate-600 dark:text-slate-400">Author, review and publish lessons.</span>
+          </span>
+        </Link>
+      )}
 
       {me.data && !me.data.emailVerified && (
         <div className="mt-4 rounded-2xl bg-amber-50 p-4 dark:bg-slate-900">

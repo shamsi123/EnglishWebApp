@@ -14,6 +14,15 @@ const ReviewPage = lazy(() => import("../features/review/ReviewPage"));
 const ProfilePage = lazy(() => import("../features/profile/ProfilePage"));
 const OnboardingPage = lazy(() => import("../features/onboarding/OnboardingPage"));
 const PlacementPage = lazy(() => import("../features/placement/PlacementPage"));
+
+// CMS (FR-80–85, FR-92): code-split under /admin so learners never download it (NFR-02).
+const AdminShellLazy = lazy(() => import("../features/admin/AdminShell").then((m) => ({ default: m.AdminShell })));
+const OutlinePage = lazy(() => import("../features/admin/OutlinePage"));
+const LessonEditorPage = lazy(() => import("../features/admin/LessonEditorPage"));
+const MediaLibraryPage = lazy(() => import("../features/admin/MediaLibraryPage"));
+const PlacementItemsPage = lazy(() => import("../features/admin/PlacementItemsPage"));
+const ImportExportPage = lazy(() => import("../features/admin/ImportExportPage"));
+const AuditLogPage = lazy(() => import("../features/admin/AuditLogPage"));
 const authPage = (name: keyof typeof import("../features/auth/AuthPages")) =>
   lazy(() => import("../features/auth/AuthPages").then((m) => ({ default: m[name] })));
 const WelcomePage = authPage("WelcomePage");
@@ -43,11 +52,14 @@ function RequireAuth() {
   return <Outlet />;
 }
 
-/** Sends new learners through onboarding (FR-02). Offline or on error, let them keep learning. */
+/**
+ * Sends new learners through onboarding (FR-02). Offline or on error, let them keep learning.
+ * Content-team accounts (FR-91 roles) have no learner profile and skip onboarding entirely.
+ */
 function RequireOnboarding() {
   const me = useQuery({ queryKey: ["me"], queryFn: () => api.getMe() });
   if (me.isPending) return <Skeleton />;
-  if (me.data && me.data.onboarding === null) return <Navigate to="/onboarding" replace />;
+  if (me.data && me.data.onboarding === null && me.data.roles.length === 0) return <Navigate to="/onboarding" replace />;
   return <Outlet />;
 }
 
@@ -93,6 +105,20 @@ const router = createBrowserRouter([
           // The lesson player and placement test are full-screen: one task per screen, no tab bar (BRD §9).
           { path: "lesson/:lessonId", element: lazyPage(<LessonPage />) },
           { path: "placement", element: lazyPage(<PlacementPage />) },
+        ],
+      },
+      // CMS: gated on a content-team role, not onboarding (staff accounts have no learner profile).
+      {
+        path: "admin",
+        element: lazyPage(<AdminShellLazy />),
+        children: [
+          { index: true, element: <Navigate to="/admin/outline" replace /> },
+          { path: "outline", element: lazyPage(<OutlinePage />) },
+          { path: "lessons/:lessonId", element: lazyPage(<LessonEditorPage />) },
+          { path: "media", element: lazyPage(<MediaLibraryPage />) },
+          { path: "placement", element: lazyPage(<PlacementItemsPage />) },
+          { path: "import-export", element: lazyPage(<ImportExportPage />) },
+          { path: "audit", element: lazyPage(<AuditLogPage />) },
         ],
       },
     ],

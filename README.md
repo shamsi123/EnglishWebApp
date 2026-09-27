@@ -7,6 +7,7 @@ Scope, requirements and target architecture are in [docs/BRD.md](docs/BRD.md). T
 
 ```
 apps/web/            Learner PWA — React 18, Vite, TypeScript, Tailwind, TanStack Query, Zustand, vite-plugin-pwa
+                     Includes the CMS under /admin (src/features/admin), code-split so learners never download it
 packages/core/       Shared TS used by web (and later Capacitor): content schema, answer checking, SM-2, XP/streak rules, /api/v1 client
 backend/
   src/Gateway/                   YARP gateway: /connect/*, /api/v1/{service}/** routing, CORS, rate limiting
@@ -32,7 +33,7 @@ pnpm build && pnpm test
 pnpm --filter @englishpath/web dev          # http://localhost:5173 (proxies /api to the gateway on :5000)
 
 # Backend
-docker compose up -d sqlserver rabbitmq redis
+docker compose up -d sqlserver rabbitmq redis azurite   # azurite is only needed for the media library (FR-81)
 cd backend
 dotnet test EnglishPath.sln
 dotnet run --project src/Services/Identity/EnglishPath.Identity.Api   # :5103, migrates its DB and seeds roles/clients in Development
@@ -75,11 +76,26 @@ The Identity service is an OAuth 2.0 / OIDC token server (OpenIddict). It issues
 | `GET/POST /api/v1/learning/admin/placement-items`, `DELETE /admin/placement-items/{id}` | content staff / author | Placement item bank (FR-10) |
 | `GET /api/v1/learning/admin/lessons/{id}` | content staff | Draft, rule violations, version history |
 | `POST /api/v1/learning/admin/lessons/{id}/{request-changes,publish,rollback}` | reviewer | Review, publish, and rollback (FR-82) |
+| `GET /api/v1/learning/admin/outline` | content staff | Every unit and lesson, drafts included — the CMS course tree (FR-80) |
+| `GET/POST /api/v1/learning/admin/media` | content staff / author | Upload (multipart, ≤ 10 MB) and list images/audio (FR-81) |
+| `GET /api/v1/learning/admin/export`, `POST /admin/import` | content staff / author | Bulk content package as JSON (FR-85) |
+| `GET /api/v1/learning/admin/audit` | content staff | Recent admin actions, optionally filtered to one record (FR-92) |
 | `GET /api/v1/progress/dashboard?today=YYYY-MM-DD` | learner | Streak, XP, words, due reviews, skill radar (FR-60) |
 | `PUT /api/v1/progress/daily-goal` | learner | 5/10/15/20-minute goal (FR-02) |
 | `GET /api/v1/progress/reviews/due`, `POST /api/v1/progress/reviews/{vocabularyId}` | learner | SM-2 review (FR-31) |
 
 In Development, each service serves Swagger UI at `/swagger`.
+
+## The CMS (`/admin`)
+
+Content-team screens live in the same PWA at `/admin`, code-split so learners never download them (NFR-02) and gated on a content-team role (FR-91: `ContentAuthor`, `Reviewer`, `SuperAdmin`, `Support`) fetched from `GET /identity/me`. Signed-in staff see a "Content management" link on their Profile page. Author-only actions (create, edit, submit) and reviewer-only actions (request changes, publish, rollback) are hidden client-side by role, but the server is what actually enforces them (`Policies.Author`/`Policies.Reviewer` in `EnglishPath.Learning.Api`).
+
+- **Course outline** (`/admin/outline`, FR-80) — every unit and lesson, including drafts, grouped by CEFR level; create units and lessons (as a regular lesson or a checkpoint) from here.
+- **Lesson editor** (`/admin/lessons/:id`, FR-80/82) — a JSON editor for the lesson content schema shared with the client (`packages/core`'s `Lesson`/`Exercise` zod types mirror the C# model 1:1), with a toolbar to insert a starter template for each of the 7 exercise types. A **live preview** renders the draft through the actual learner lesson player (`LessonPlayer`, parsed with the same zod schema learners get), so what an author sees is what ships. Draft rule violations (8–15 exercises, ≤ 10 new words, one listening item, valid answer keys) come straight from the server. Workflow buttons (submit → request changes / publish → roll back to an earlier version) appear per the signed-in user's role, with inline version history and this lesson's audit trail.
+- **Media library** (`/admin/media`, FR-81) — drag-free upload of one image or audio file at a time (≤ 10 MB); images are resized and converted to WebP server-side. Copy a file's CDN URL into a lesson's `audio`/`image` field.
+- **Placement items** (`/admin/placement`, FR-10) — manage the question bank the placement test draws from, with the same template toolbar restricted to the 4 server-scorable exercise types.
+- **Import / export** (`/admin/import-export`, FR-85) — export the whole course (units, lesson drafts, active placement items) as one JSON file; import a package (e.g. drafted offline or with AI help) as drafts, which still go through review.
+- **Audit log** (`/admin/audit`, FR-92) — the most recent 200 content-management actions across the service (who, what, when).
 
 ## Key design points
 
@@ -89,15 +105,18 @@ In Development, each service serves Swagger UI at `/swagger`.
 - **Placement and unlocking** (FR-10–12). The placement test works in blocks of 4 questions at one level: 3 or more correct moves up a level, otherwise it moves down or stops. It has at most 20 questions and expires after 30 minutes. Answer keys stay on the server, so only multiple choice, listen-and-select, image-word and fill-blank items are allowed. Learners start at the level after the highest one they passed. Lower levels stay open for revision. Each later unit opens when the previous unit's checkpoint is passed with 70% or more, or, for a unit without a checkpoint, when all its lessons are done.
 - **Vocabulary** (FR-30–32). Publishing a lesson copies its words into a vocabulary table used by the Review screen. Vocabulary ids are global, so reuse an id only for the same word; the last lesson published wins.
 - **Right to erasure** (NFR-08). Deleting an account publishes `UserDeleted`; Learning and Progress delete that learner's data.
+- **Audit log** (FR-92). Any MediatR command implementing `IAuditedCommand` is recorded by a shared pipeline behavior after it succeeds (`AuditBehavior` in `BuildingBlocks.Application`) — a new admin command gets an audit trail for free by declaring the interface, no per-endpoint wiring.
+- **Media is content-addressed** (FR-81). Uploads are named by the SHA-256 of their (processed) bytes, so the same file uploaded twice reuses one URL and a URL never needs to change; files are marked immutable for CDN caching.
 - **Client/server parity.** XP, streak and SM-2 rules exist in both TS (`packages/core`) and C#. The tests on both sides use the same vectors.
 
 ## Status against the MVP plan
 
-Done: monorepo, CI, PWA shell with sign-up, sign-in, onboarding, email-link pages, profile/dashboard and account deletion; placement test (FR-10, FR-11) and unit checkpoints (FR-12); Review flashcards with UK/US audio, IPA and example (FR-31, FR-32); lesson player with all 7 exercise types, whose completions are queued offline in IndexedDB and synced on reconnect; course map; Identity service (sign-up and sign-in, Google/Apple exchange, age and guardian consent, verification, reset, onboarding, deletion with erasure), Learning & Content service with the CMS workflow API, Progress service (XP, daily goal, streaks with freezes, skill radar, SRS), gateway, local infrastructure.
+Done: monorepo, CI, PWA shell with sign-up, sign-in, onboarding, email-link pages, profile/dashboard and account deletion; placement test (FR-10, FR-11) and unit checkpoints (FR-12); Review flashcards with UK/US audio, IPA and example (FR-31, FR-32); lesson player with all 7 exercise types, whose completions are queued offline in IndexedDB and synced on reconnect; course map; Identity service (sign-up and sign-in, Google/Apple exchange, age and guardian consent, verification, reset, onboarding, deletion with erasure), Learning & Content service with the CMS workflow API, Progress service (XP, daily goal, streaks with freezes, skill radar, SRS), gateway, local infrastructure; the CMS itself (`/admin`): course outline, lesson editor with live preview and the full review/publish/rollback workflow, media library with image compression, placement item bank, bulk import/export, and an audit log (FR-80–82, FR-85, FR-91, FR-92).
 
 Next, in rough order:
-- Google/Apple SDK buttons on the web; SendGrid email sender; production signing certificates from the vault; token pruning; admin role management (FR-91) with audit log (FR-92)
+- Google/Apple SDK buttons on the web; SendGrid email sender; production signing certificates from the vault; token pruning
+- Admin support tools: user search, view a learner's progress, reset streak, manage subscription, assign roles in-app (FR-90, FR-91 — roles exist and are enforced, but are currently only assignable via `RoleManager`/database)
 - Resume a lesson mid-way across devices (FR-27); precache the current unit's lessons for offline use (NFR-05)
-- Admin CMS app with live preview, media upload/CDN, TTS, bulk import (FR-80/81/83/85), audit log (FR-92), support tools (FR-90)
+- Text-to-speech generation for exercise audio (FR-83); AI-assisted exercise drafting (FR-84)
 - Badges (FR-51); daily due count on the Review tab
 - Observability (OpenTelemetry, Serilog), infrastructure as code, analytics events
